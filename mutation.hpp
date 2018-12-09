@@ -32,6 +32,7 @@ public:
     unsigned long pos;
     string refallele;
     string varallele;
+    char isForwardStrand;
     CMutation(string cancer_,
               string sample_,
               string chr_,

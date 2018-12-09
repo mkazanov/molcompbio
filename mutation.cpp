@@ -127,6 +127,12 @@ void CMutations::FilterMutations(CMutations& filteredMutations, vector<CMutation
                  gmotif == CDNA::cDNA(s.motif) )
                 )
                 {
+                    if (m.refallele == mutBase)
+                        m.isForwardStrand = 1;
+                    else if(m.refallele == CDNA::cDNA(mutBase))
+                        m.isForwardStrand = 0;
+                    else
+                        m.isForwardStrand = -1;
                     filteredMutations.mutations.push_back(m);
                 }
                 
@@ -143,7 +149,7 @@ void CMutations::SaveToFile(string path)
     for(i=0;i<mutations.size();i++)
         f << string(mutations[i].cancer) << '\t' << string(mutations[i].sample) << '\t' <<
         string(mutations[i].chr) << '\t' << ul2str(mutations[i].pos) << '\t' << mutations[i].refallele <<
-        '\t' << mutations[i].varallele << '\n';
+        '\t' << mutations[i].varallele << (int) mutations[i].isForwardStrand << '\n';
     
     f.close();
 }

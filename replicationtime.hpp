@@ -9,10 +9,14 @@
 #ifndef replicationtime_hpp
 #define replicationtime_hpp
 
-#define RT_NULL 999999
-
 #include <set>
 #include <string>
+
+#define RT_NULL 999999
+#define CHR_NULL -1
+#define STRAND_LEADING 1
+#define STRAND_LAGGING 0
+
 
 using namespace std;
 
@@ -22,9 +26,11 @@ public:
     unsigned long startpos;
     unsigned long endpos;
     double RTvalue;
+    mutable short isForward;
     CReplicationTime(string chr_, string startpos_, string endpos_, string RTvalue_);
     CReplicationTime(int chrNum_, unsigned long pos_);
     CReplicationTime(){};
+    bool isRTnull();
     bool operator< (const CReplicationTime &right) const
     {
         if (chrNum < right.chrNum)
@@ -48,8 +54,11 @@ class CReplicationTiming {
     set<CReplicationTime> RTs;
 public:
     void LoadReplicationTiming(string path, int isHeader);
-    double GetRT(int chrNum, unsigned long pos);
-    int GetRTBin(int chrNum, unsigned long pos, vector<CRTBin> bins);
+    CReplicationTime GetRT(int chrNum, unsigned long pos);
+    int GetRTBin(double RTvalue, vector<CRTBin> bins);
+    int GetRTBin(CReplicationTime rt, vector<CRTBin> bins);
+    void ReplicationStrand();
+    void SaveToFile(string path);
 };
 
 #endif /* replicationtime_hpp */

@@ -44,6 +44,15 @@ public:
 
 };
 
+class CResultsValue{
+public:
+    unsigned long mutCnt;
+    unsigned long leadingCnt;
+    unsigned long laggingCnt;
+    CResultsValue(unsigned long mutCnt_, unsigned long leadingCnt_, unsigned long laggingCnt_);
+    CResultsValue(){};
+};
+
 void AnalysisReplicationTiming();
 
 #endif /* apobec_hpp */

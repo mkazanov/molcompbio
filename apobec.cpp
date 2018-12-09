@@ -22,9 +22,18 @@ CResultsKey::CResultsKey(string cancer_, string sample_, int RTbin_)
     RTbin = RTbin_;
 }
 
+
+CResultsValue::CResultsValue(unsigned long mutCnt_, unsigned long leadingCnt_, unsigned long laggingCnt_)
+{
+    mutCnt = mutCnt_;
+    leadingCnt = leadingCnt_;
+    laggingCnt = laggingCnt_;
+}
+
+
 void AnalysisReplicationTiming()
 {
-    
+
     // Load genome
     CHumanGenome human;
     human.InitializeHuman("37", "/Users/mar/BIO/BIODATA/HUMAN/CH37/hs_ref_GRCh37.p5_chr", ".fa", "FASTA");
@@ -52,19 +61,27 @@ void AnalysisReplicationTiming()
     m.FilterMutations(apobecMuts,signatures,human,cancers,samples);
     apobecMuts.SaveToFile("/Users/mar/BIO/BIODATA/CancerMutations/Fredriksson_et_al_2014/mutations_apobec.tsv");
     
+    exit(0);
+    
     // Load replication timing
     CReplicationTiming rtIMR90;
     CReplicationTiming rtMCF7;
     CReplicationTiming rtNHEK;
     rtIMR90.LoadReplicationTiming("/Users/mar/BIO/BIODATA/ReplicationTiming/wgEncodeUwRepliSeqImr90WaveSignalRep1.mybed", 0);
+    rtIMR90.ReplicationStrand();
     rtMCF7.LoadReplicationTiming("/Users/mar/BIO/BIODATA/ReplicationTiming/wgEncodeUwRepliSeqMcf7WaveSignalRep1.mybed", 0);
+    rtMCF7.ReplicationStrand();
     rtNHEK.LoadReplicationTiming("/Users/mar/BIO/BIODATA/ReplicationTiming/wgEncodeUwRepliSeqNhekWaveSignalRep1.mybed", 0);
+    rtNHEK.ReplicationStrand();
 
     //
-    map<CResultsKey, unsigned long> resultsAPOBEC;
-    map<CResultsKey, unsigned long>::iterator it;
+    map<CResultsKey, CResultsValue> resultsAPOBEC;
+    map<CResultsKey, CResultsValue>::iterator it;
+    CReplicationTime r;
     CMutation mut;
+    CResultsValue rv;
     int bin;
+    int strand;
     
     vector<CRTBin> binsIMR90, binsNHEK, binsMCF7;
     binsIMR90.emplace_back(1,-100,13.0766);
@@ -95,24 +112,50 @@ void AnalysisReplicationTiming()
     {
         mut = apobecMuts.mutations[i];
         if (string(mut.cancer) == "LUAD" || string(mut.cancer) == "LUSC")
-            bin = rtIMR90.GetRTBin(CHumanGenome::GetChrNum(string(mut.chr)), mut.pos, binsIMR90);
+        {
+            r = rtIMR90.GetRT(CHumanGenome::GetChrNum(string(mut.chr)), mut.pos);
+            bin = rtIMR90.GetRTBin(r, binsIMR90);
+        }
         else if (string(mut.cancer) == "BLCA" || string(mut.cancer) == "HNSC")
-            bin = rtNHEK.GetRTBin(CHumanGenome::GetChrNum(string(mut.chr)), mut.pos, binsNHEK);
+        {
+            r = rtNHEK.GetRT(CHumanGenome::GetChrNum(string(mut.chr)), mut.pos);
+            bin = rtNHEK.GetRTBin(r, binsNHEK);
+        }
         else if (string(mut.cancer) == "BRCA")
-            bin = rtMCF7.GetRTBin(CHumanGenome::GetChrNum(string(mut.chr)), mut.pos, binsMCF7);
+        {
+            r = rtMCF7.GetRT(CHumanGenome::GetChrNum(string(mut.chr)), mut.pos);
+            bin = rtMCF7.GetRTBin(r, binsMCF7);
+        }
 
+        if((mut.isForwardStrand == 1 && r.isForward == 1) || (mut.isForwardStrand == 0 && r.isForward == 0))
+            strand = STRAND_LAGGING;
+        else if((mut.isForwardStrand == 1 && r.isForward == 0) || (mut.isForwardStrand == 0 && r.isForward == 1))
+            strand = STRAND_LEADING;
+            
         it = resultsAPOBEC.find(CResultsKey(string(mut.cancer),string(mut.sample),bin));
         if ( it == resultsAPOBEC.end())
-            resultsAPOBEC.insert(pair<CResultsKey, unsigned long>(CResultsKey(string(mut.cancer),string(mut.sample),bin), 1));
+        {
+            if (strand == STRAND_LEADING)
+                rv = CResultsValue(1,1,0);
+            else if (strand == STRAND_LAGGING)
+                rv = CResultsValue(1,0,1);
+            resultsAPOBEC.insert(pair<CResultsKey, CResultsValue>(CResultsKey(string(mut.cancer),string(mut.sample),bin), rv));
+        }
         else
-            it->second++;
+        {
+            it->second.mutCnt++;
+            if (strand == STRAND_LEADING)
+                it->second.leadingCnt++;
+            else if (strand == STRAND_LAGGING)
+                it->second.laggingCnt++;
+        }
     }
     
     ofstream f;
     f.open("/Users/mar/BIO/PROJECTS/APOBEC/Project1_TranscriptionLevel/R/results_apobec.txt");
     
     for(it=resultsAPOBEC.begin(); it!=resultsAPOBEC.end(); ++it)
-        f << it->first.cancer << '\t' << it->first.sample << '\t' << it->first.RTbin << '\t' << it->second << '\n';
+        f << it->first.cancer << '\t' << it->first.sample << '\t' << it->first.RTbin << '\t' << it->second.mutCnt << '\t' << it->second.leadingCnt << '\t' << it->second.laggingCnt << '\n';
 
     f.close();
     

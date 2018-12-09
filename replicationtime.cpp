@@ -25,6 +25,14 @@ CReplicationTime::CReplicationTime(int chrNum_, unsigned long pos_)
     startpos = pos_;
 }
 
+bool CReplicationTime::isRTnull()
+{
+    if(chrNum == CHR_NULL)
+        return true;
+    else
+        return false;
+}
+
 CRTBin::CRTBin(int binNum_, double RTleft_, double RTright_)
 {
     binNum = binNum_;
@@ -66,28 +74,72 @@ void CReplicationTiming::LoadReplicationTiming(string path, int isHeader)
     int size = RTs.size();
 }
 
-double CReplicationTiming::GetRT(int chrNum, unsigned long pos)
+CReplicationTime CReplicationTiming::GetRT(int chrNum, unsigned long pos)
 {
     set<CReplicationTime>::iterator it;
+    CReplicationTime RTnull(CHR_NULL,0);
 
     CReplicationTime rt(chrNum, pos);
     it = RTs.upper_bound(rt);
     it--;
     if(it->chrNum == chrNum && pos >= it->startpos && pos <= it->endpos)
-        return it->RTvalue;
+        return (*it);
     else
-        return RT_NULL;
-    
-    return(0);
+        return RTnull;
 }
 
-int CReplicationTiming::GetRTBin(int chrNum, unsigned long pos, vector<CRTBin> bins)
+int CReplicationTiming::GetRTBin(double RTvalue, vector<CRTBin> bins)
 {
-    double rt;
-    
-    rt = GetRT(chrNum,pos);
     for(int i=0;i<bins.size();i++)
-        if(rt >= bins[i].RTleft && rt < bins[i].RTright)
+        if(RTvalue >= bins[i].RTleft && RTvalue < bins[i].RTright)
             return(bins[i].binNum);
     return(-1);
 }
+
+int CReplicationTiming::GetRTBin(CReplicationTime rt, vector<CRTBin> bins)
+{
+    int bin;
+    
+    if(rt.isRTnull())
+        bin = -1;
+    else
+        bin = GetRTBin(rt.RTvalue, bins);
+
+    return(bin);
+}
+
+void CReplicationTiming::ReplicationStrand()
+{
+    set<CReplicationTime>::iterator it,previt,nextit;
+    
+    for(it=RTs.begin();it!=RTs.end();++it)
+    {
+        if(it != RTs.begin())
+            previt = prev(it);
+        nextit = next(it);
+        if(it == RTs.begin() || previt->chrNum != it->chrNum || nextit->chrNum != it->chrNum)
+            it->isForward = -1;
+        else
+        {
+            if(nextit->RTvalue - previt->RTvalue > 0)
+                it->isForward = 1;
+            else if(nextit->RTvalue - previt->RTvalue < 0)
+                it->isForward = 0;
+            else
+                it->isForward = -1;
+        }
+    }
+}
+
+void CReplicationTiming::SaveToFile(string path)
+{
+    ofstream f;
+    f.open(path);
+    set<CReplicationTime>::iterator it;
+
+    for(it=RTs.begin();it!=RTs.end();++it)
+        f << (*it).chrNum << '\t' << (*it).startpos << '\t' << (*it).endpos << '\t' << (*it).RTvalue << '\t' << (*it).isForward << '\n';
+        
+    f.close();
+}
+
