@@ -12,6 +12,7 @@
 #include "ghuman.hpp"
 #include "mutation.hpp"
 #include "replicationtime.hpp"
+#include "genehuman.hpp"
 #include <map>
 #include <fstream>
 
@@ -33,6 +34,14 @@ CResultsValue::CResultsValue(unsigned long mutCnt_, unsigned long leadingCnt_, u
 
 void AnalysisReplicationTiming()
 {
+    CHumanGenes g;
+    g.LoadGenes("/Users/mar/BIO/BIODATA/HUMAN/CH37/ref_GRCh37.p5_top_level.gff3");
+    g.PrepareForSearch();
+    g.SaveToFile("/Users/mar/BIO/BIODATA/HUMAN/CH37/1.txt");
+    vector<CHumanGene> v;
+    g.GetGenesByPos(0, 132000, v);
+
+    exit(0);
 
     // Load genome
     CHumanGenome human;
