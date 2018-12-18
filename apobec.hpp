@@ -18,8 +18,8 @@ class CResultsKey {
 public:
     string cancer;
     string sample;
-    int RTbin;
-    CResultsKey(string cancer_, string sample_, int RTbin_);
+    int bin;
+    CResultsKey(string cancer_, string sample_, int bin_);
     bool operator< (const CResultsKey &right) const
     {
         if (cancer < right.cancer)
@@ -34,7 +34,7 @@ public:
                 return false;
             else
             {
-                if(RTbin < right.RTbin)
+                if(bin < right.bin)
                     return true;
                 else
                     return false;
@@ -49,10 +49,17 @@ public:
     unsigned long mutCnt;
     unsigned long leadingCnt;
     unsigned long laggingCnt;
+    unsigned long plusStrandConsistent;
+    unsigned long minusStrandConsistent;
+    unsigned long plusStrandAll;
+    unsigned long minusStrandAll;
+    
     CResultsValue(unsigned long mutCnt_, unsigned long leadingCnt_, unsigned long laggingCnt_);
+    CResultsValue(unsigned long mutCnt_, unsigned long plusStrandConsistent_, unsigned long minusStrandConsistent_, unsigned long plusStrandAll, unsigned long minusStrandAll);
     CResultsValue(){};
 };
 
 void AnalysisReplicationTiming();
+void AnalysisExpression();
 
 #endif /* apobec_hpp */

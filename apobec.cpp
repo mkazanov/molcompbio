@@ -12,15 +12,16 @@
 #include "ghuman.hpp"
 #include "mutation.hpp"
 #include "replicationtime.hpp"
+#include "expression.hpp"
 #include "genehuman.hpp"
 #include <map>
 #include <fstream>
 
-CResultsKey::CResultsKey(string cancer_, string sample_, int RTbin_)
+CResultsKey::CResultsKey(string cancer_, string sample_, int bin_)
 {
     cancer = cancer_;
     sample = sample_;
-    RTbin = RTbin_;
+    bin = bin_;
 }
 
 
@@ -31,17 +32,17 @@ CResultsValue::CResultsValue(unsigned long mutCnt_, unsigned long leadingCnt_, u
     laggingCnt = laggingCnt_;
 }
 
+CResultsValue::CResultsValue(unsigned long mutCnt_, unsigned long plusStrandConsistent_, unsigned long minusStrandConsistent_, unsigned long plusStrandAll_, unsigned long minusStrandAll_)
+{
+    mutCnt = mutCnt_;
+    plusStrandConsistent = plusStrandConsistent_;
+    minusStrandConsistent = minusStrandConsistent_;
+    plusStrandAll = plusStrandAll_;
+    minusStrandAll = minusStrandAll_;
+}
 
 void AnalysisReplicationTiming()
 {
-    CHumanGenes g;
-    g.LoadGenes("/Users/mar/BIO/BIODATA/HUMAN/CH37/ref_GRCh37.p5_top_level.gff3");
-    g.PrepareForSearch();
-    g.SaveToFile("/Users/mar/BIO/BIODATA/HUMAN/CH37/1.txt");
-    vector<CHumanGene> v;
-    g.GetGenesByPos(0, 132000, v);
-
-    exit(0);
 
     // Load genome
     CHumanGenome human;
@@ -164,8 +165,179 @@ void AnalysisReplicationTiming()
     f.open("/Users/mar/BIO/PROJECTS/APOBEC/Project1_TranscriptionLevel/R/results_apobec.txt");
     
     for(it=resultsAPOBEC.begin(); it!=resultsAPOBEC.end(); ++it)
-        f << it->first.cancer << '\t' << it->first.sample << '\t' << it->first.RTbin << '\t' << it->second.mutCnt << '\t' << it->second.leadingCnt << '\t' << it->second.laggingCnt << '\n';
+        f << it->first.cancer << '\t' << it->first.sample << '\t' << it->first.bin << '\t' << it->second.mutCnt << '\t' << it->second.leadingCnt << '\t' << it->second.laggingCnt << '\n';
 
     f.close();
     
 }
+
+int GetExpressionBin(string sample, string chr, unsigned long pos, char isForwardMut, CHumanGenes& genes, CExpression& exp, vector<CExpressionBin>& expBins, int& strand, int& strandInconsistence)
+{
+    vector<CHumanGene> geneList;
+    double expValue, maxexp;
+    int strandplus=0,strandminus=0;
+    int res;
+    int ret=0;
+    int bin;
+    
+    genes.GetGenesByPos(CHumanGenome::GetChrNum(string(chr)), pos, geneList);
+    if(geneList.empty())
+    {
+        strand = -1;
+        strandInconsistence = 0;
+        return(-2); // mutation not in genes
+    }
+    maxexp = -100000.0;
+    ret = 0;
+    strand = -1;
+    for(int i=0;i<geneList.size();i++)
+    {
+        if((geneList[i].strand == '+' && isForwardMut == 1) || (geneList[i].strand == '-' && isForwardMut == 0))
+            strandplus++;
+        else if((geneList[i].strand == '-' && isForwardMut == 1) || (geneList[i].strand == '+' && isForwardMut == 0))
+            strandminus--;
+        res = exp.GetExpression(geneList[i].geneID, sample, expValue);
+        if(res)
+        {
+            if(maxexp < expValue)
+            {
+                maxexp = expValue;
+                if((geneList[i].strand == '+' && isForwardMut == 1) || (geneList[i].strand == '-' && isForwardMut == 0))
+                    strand = 1;
+                else if((geneList[i].strand == '-' && isForwardMut == 1) || (geneList[i].strand == '+' && isForwardMut == 0))
+                    strand = 0;
+            }
+            ret = 1;
+        }
+    }
+    
+    if(strandplus !=0 && strandminus !=0)
+        strandInconsistence = 1;
+    else
+        strandInconsistence = 0;
+    
+    if(ret == 0)
+        return(-1); // mutation in genes, but no expression data
+    
+    bin = exp.GetExpressionBin(maxexp, expBins);
+    return(bin);
+}
+
+void AnalysisExpression()
+{
+    // Load genome
+    CHumanGenome human;
+    human.InitializeHuman("37", "/Users/mar/BIO/BIODATA/HUMAN/CH37/hs_ref_GRCh37.p5_chr", ".fa", "FASTA");
+    
+    // Load mutations
+    CMutations m;
+    int isHeader = 1;
+    m.LoadMutations("/Users/mar/BIO/BIODATA/CancerMutations/Fredriksson_et_al_2014/mutations.tsv", isHeader);
+    
+    // Filter APOBEC mutations
+    CMutations apobecMuts;
+    vector<CMutationSignature> signatures;
+    signatures.emplace_back("TCA",2,"T");
+    signatures.emplace_back("TCT",2,"T");
+    signatures.emplace_back("TCA",2,"G");
+    signatures.emplace_back("TCT",2,"G");
+    
+    set<string> cancers;
+    set<string> samples;
+    cancers.insert("BLCA");
+    cancers.insert("BRCA");
+    cancers.insert("HNSC");
+    cancers.insert("LUAD");
+    cancers.insert("LUSC");
+    m.FilterMutations(apobecMuts,signatures,human,cancers,samples);
+    
+    CHumanGenes genes;
+    genes.LoadGenes("/Users/mar/BIO/BIODATA/HUMAN/CH37/ref_GRCh37.p5_top_level.gff3");
+    genes.PrepareForSearch();
+    
+    CExpression blca,brca,hnsc,luad,lusc;
+    
+    blca.LoadExpression("/Users/mar/BIO/PROJECTS/APOBEC/Project1_TranscriptionLevel/expression/unpivot_expression_BLCA.txt");
+    brca.LoadExpression("/Users/mar/BIO/PROJECTS/APOBEC/Project1_TranscriptionLevel/expression/unpivot_expression_BRCA.txt");
+    hnsc.LoadExpression("/Users/mar/BIO/PROJECTS/APOBEC/Project1_TranscriptionLevel/expression/unpivot_expression_HNSC.txt");
+    luad.LoadExpression("/Users/mar/BIO/PROJECTS/APOBEC/Project1_TranscriptionLevel/expression/unpivot_expression_LUAD.txt");
+    lusc.LoadExpression("/Users/mar/BIO/PROJECTS/APOBEC/Project1_TranscriptionLevel/expression/unpivot_expression_LUSC.txt");
+
+    vector<CExpressionBin> expBins;
+    
+    expBins.emplace_back(0,-9999999,0);
+    expBins.emplace_back(1,0,25);
+    expBins.emplace_back(2,25,100);
+    expBins.emplace_back(3,100,300);
+    expBins.emplace_back(4,300,550);
+    expBins.emplace_back(5,550,1000);
+    expBins.emplace_back(6,1000,2000);
+    expBins.emplace_back(7,2000,99999999999);
+    
+    
+    map<CResultsKey, CResultsValue> resultsAPOBEC;
+    map<CResultsKey, CResultsValue>::iterator it;
+    CResultsValue rv;
+    CMutation mut;
+    int res;
+    int strand, strandInconsistence;
+    double maxexp;
+    int bin;
+    for(int i=0;i<apobecMuts.mutations.size();i++)
+    {
+        mut = apobecMuts.mutations[i];
+        if (string(mut.cancer) == "BLCA")
+        {
+             bin = GetExpressionBin(string(mut.sample), mut.chr, mut.pos, mut.isForwardStrand, genes, blca, expBins, strand, strandInconsistence);
+        }
+        else if (string(mut.cancer) == "BRCA")
+        {
+            bin = GetExpressionBin(string(mut.sample), mut.chr, mut.pos, mut.isForwardStrand, genes, brca, expBins, strand, strandInconsistence);
+        }
+        else if (string(mut.cancer) == "HNSC")
+        {
+            bin = GetExpressionBin(string(mut.sample), mut.chr, mut.pos, mut.isForwardStrand, genes, hnsc, expBins, strand, strandInconsistence);
+        }
+        else if (string(mut.cancer) == "LUAD")
+        {
+            bin = GetExpressionBin(string(mut.sample), mut.chr, mut.pos, mut.isForwardStrand, genes, luad, expBins, strand, strandInconsistence);
+        }
+        else if (string(mut.cancer) == "LUSC")
+        {
+            bin = GetExpressionBin(string(mut.sample), mut.chr, mut.pos, mut.isForwardStrand, genes, lusc, expBins, strand, strandInconsistence);
+        }
+        
+        it = resultsAPOBEC.find(CResultsKey(string(mut.cancer),string(mut.sample),bin));
+        if ( it == resultsAPOBEC.end())
+        {
+            rv = CResultsValue(1,0,0,0,0);
+            resultsAPOBEC.insert(pair<CResultsKey, CResultsValue>(CResultsKey(string(mut.cancer),string(mut.sample),bin), rv));
+        }
+        else
+        {
+            it->second.mutCnt++;
+            if(strand == 1)
+            {
+                it->second.plusStrandAll++;
+                if(strandInconsistence == 0)
+                    it->second.plusStrandConsistent++;
+            }
+            else if(strand == 0)
+            {
+                it->second.minusStrandAll++;
+                if(strandInconsistence == 0)
+                    it->second.minusStrandConsistent++;
+            }
+        }
+    }
+    
+    ofstream f;
+    f.open("/Users/mar/BIO/PROJECTS/APOBEC/Project1_TranscriptionLevel/R/results_expression_apobec.txt");
+    
+    for(it=resultsAPOBEC.begin(); it!=resultsAPOBEC.end(); ++it)
+        f << it->first.cancer << '\t' << it->first.sample << '\t' << it->first.bin << '\t' << it->second.mutCnt << '\t' << it-> second.plusStrandConsistent << '\t' << it->second.minusStrandConsistent << '\t' << it->second.plusStrandAll << '\t' << it->second.minusStrandAll <<'\n';
+    
+    f.close();
+}
+                                     
+

@@ -23,7 +23,7 @@ CHumanGene::CHumanGene(string chr_, string startpos_, string endpos_, string str
     if(pos1 != string::npos)
     {
         pos2 = info_.find(";",pos1);
-        geneID = info_.substr(pos1+7, pos2-pos1-7);
+        geneID = str2ul(info_.substr(pos1+7, pos2-pos1-7));
     }
     pos1 = info_.find("gene=");
     if(pos1 != string::npos)

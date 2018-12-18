@@ -21,7 +21,7 @@ public:
     unsigned long endpos;
     mutable unsigned long maxendpos;
     char strand;
-    string geneID;
+    unsigned long geneID;
     string geneName;
     CHumanGene(string chr_, string starpos_, string endpos_, string strand_, string info_);
     CHumanGene(int chrNum_, unsigned long pos_);
