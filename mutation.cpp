@@ -83,13 +83,13 @@ void CMutations::LoadMutations(string path, int isHeader)
         }
     }
     c2 = clock();
-    printf("Loaded %i mutations\n", mutationsCnt);
+    printf("Loaded %lu mutations\n", mutationsCnt);
     printf("Executing time: %lu \n", c2 - c1);
     
 }
 
 void CMutations::FilterMutations(CMutations& filteredMutations, vector<CMutationSignature>& signatures, CHumanGenome& human,
-                                 set<string> cancers, set<string> samples)
+                                 set<string> cancers, set<string> samples, CMutations* pOtherMutations=NULL)
 {
     int i,j;
     CMutation m;
@@ -135,7 +135,11 @@ void CMutations::FilterMutations(CMutations& filteredMutations, vector<CMutation
                         m.isForwardStrand = -1;
                     filteredMutations.mutations.push_back(m);
                 }
-                
+            else
+            {
+                if(pOtherMutations!=NULL)
+                    pOtherMutations->mutations.push_back(m);
+            }
         }
     }
 }
@@ -149,7 +153,7 @@ void CMutations::SaveToFile(string path)
     for(i=0;i<mutations.size();i++)
         f << string(mutations[i].cancer) << '\t' << string(mutations[i].sample) << '\t' <<
         string(mutations[i].chr) << '\t' << ul2str(mutations[i].pos) << '\t' << mutations[i].refallele <<
-        '\t' << mutations[i].varallele << (int) mutations[i].isForwardStrand << '\n';
+        '\t' << mutations[i].varallele << '\t' << (int) mutations[i].isForwardStrand << '\n';
     
     f.close();
 }

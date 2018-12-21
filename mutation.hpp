@@ -45,13 +45,14 @@ public:
 class CMutations{
 public:
     vector<CMutation> mutations;
-    unsigned long int mutationsCnt;
+    unsigned long mutationsCnt;
     void LoadMutations(string path, int isHeader);
     void FilterMutations(CMutations& filteredMutations,
                          vector<CMutationSignature>& signatures,
                          CHumanGenome& human,
                          set<string> cancers,
-                         set<string> samples);
+                         set<string> samples,
+                         CMutations* pOtherMutations);
     void SaveToFile(string path);
 };
 

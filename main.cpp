@@ -16,7 +16,12 @@
 
 int main(int argc, const char * argv[]) {
     
-    AnalysisExpression();
+    CAPOBEC a;
+    a.ClassifyMutations();
+    //a.AnalysisReplicationTiming(a.apobecMuts,"results_RT_APOBEC.txt");
+    a.AnalysisReplicationTiming(a.otherMuts,"results_RT_OTHER.txt");
+
+    //a.CalculateTargetsinRTBins();
     
     return 0;
 }

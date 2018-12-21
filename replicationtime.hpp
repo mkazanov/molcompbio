@@ -13,6 +13,8 @@
 #include <string>
 
 #define RT_NULL 999999
+#define RT_NULLBIN_NOVALUE -1
+#define RT_NULLBIN_NOBIN -2
 #define CHR_NULL -1
 #define STRAND_LEADING 1
 #define STRAND_LAGGING 0
@@ -54,11 +56,14 @@ class CReplicationTiming {
     set<CReplicationTime> RTs;
 public:
     void LoadReplicationTiming(string path, int isHeader);
-    CReplicationTime GetRT(int chrNum, unsigned long pos);
+    int GetRT(int chrNum, unsigned long pos, double& RTvalue);
+    int GetRT(int chrNum, unsigned long pos, CReplicationTime& rtobj);
     int GetRTBin(double RTvalue, vector<CRTBin> bins);
     int GetRTBin(CReplicationTime rt, vector<CRTBin> bins);
+    int GetRTBin(int chrNum, unsigned long pos, vector<CRTBin> bins);
     void ReplicationStrand();
     void SaveToFile(string path);
+    int CalculateMotifinRTBins(vector<CRTBin> bins, vector<string> motifs, string OUT_PATH);
 };
 
 #endif /* replicationtime_hpp */

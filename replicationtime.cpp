@@ -10,6 +10,11 @@
 #include "service.h"
 #include <fstream>
 #include "ghuman.hpp"
+#include "dna.hpp"
+#include <map>
+#include "options.h"
+#include <iostream>
+#include <algorithm>
 
 CReplicationTime::CReplicationTime(string chr_, string startpos_, string endpos_, string RTvalue_)
 {
@@ -74,18 +79,46 @@ void CReplicationTiming::LoadReplicationTiming(string path, int isHeader)
     int size = RTs.size();
 }
 
-CReplicationTime CReplicationTiming::GetRT(int chrNum, unsigned long pos)
+int CReplicationTiming::GetRT(int chrNum, unsigned long pos, double& RTvalue)
 {
     set<CReplicationTime>::iterator it;
-    CReplicationTime RTnull(CHR_NULL,0);
 
     CReplicationTime rt(chrNum, pos);
     it = RTs.upper_bound(rt);
+    if(it == RTs.begin())
+    {
+        RTvalue = RT_NULL;
+        return(0);
+    }
     it--;
-    if(it->chrNum == chrNum && pos >= it->startpos && pos <= it->endpos)
-        return (*it);
+    if(it != RTs.end() && it->chrNum == chrNum && pos >= it->startpos && pos <= it->endpos)
+    {
+        RTvalue = it->RTvalue;
+        return (1);
+    }
     else
-        return RTnull;
+    {
+        RTvalue = RT_NULL;
+        return(0);
+    }
+}
+
+int CReplicationTiming::GetRT(int chrNum, unsigned long pos, CReplicationTime& rt)
+{
+    set<CReplicationTime>::iterator it;
+    
+    CReplicationTime rtquery(chrNum, pos);
+    it = RTs.upper_bound(rtquery);
+    if(it == RTs.begin())
+        return(0);
+    it--;
+    if(it != RTs.end() && it->chrNum == chrNum && pos >= it->startpos && pos <= it->endpos)
+    {
+        rt = (*it);
+        return (1);
+    }
+    else
+        return(0);
 }
 
 int CReplicationTiming::GetRTBin(double RTvalue, vector<CRTBin> bins)
@@ -93,19 +126,23 @@ int CReplicationTiming::GetRTBin(double RTvalue, vector<CRTBin> bins)
     for(int i=0;i<bins.size();i++)
         if(RTvalue >= bins[i].RTleft && RTvalue < bins[i].RTright)
             return(bins[i].binNum);
-    return(-1);
+    return(RT_NULLBIN_NOBIN);
 }
 
-int CReplicationTiming::GetRTBin(CReplicationTime rt, vector<CRTBin> bins)
+int CReplicationTiming::GetRTBin(int chrNum, unsigned long pos, vector<CRTBin> bins)
 {
+    double RTvalue;
+    int res;
     int bin;
     
-    if(rt.isRTnull())
-        bin = -1;
+    res = GetRT(chrNum,pos,RTvalue);
+    if(res)
+    {
+        bin = GetRTBin(RTvalue,bins);
+        return(bin);
+    }
     else
-        bin = GetRTBin(rt.RTvalue, bins);
-
-    return(bin);
+        return(RT_NULLBIN_NOVALUE);
 }
 
 void CReplicationTiming::ReplicationStrand()
@@ -122,9 +159,9 @@ void CReplicationTiming::ReplicationStrand()
         else
         {
             if(nextit->RTvalue - previt->RTvalue > 0)
-                it->isForward = 1;
-            else if(nextit->RTvalue - previt->RTvalue < 0)
                 it->isForward = 0;
+            else if(nextit->RTvalue - previt->RTvalue < 0)
+                it->isForward = 1;
             else
                 it->isForward = -1;
         }
@@ -143,3 +180,81 @@ void CReplicationTiming::SaveToFile(string path)
     f.close();
 }
 
+int CReplicationTiming::CalculateMotifinRTBins(vector<CRTBin> bins, vector<string> motifs, string OUT_PATH)
+{
+    int bin;
+    map<int,unsigned long> results;
+    map<int,unsigned long>::iterator it;
+    vector<string> motifsall;
+    unsigned long motiflen,motifhalf;
+    int break2;
+    string motif;
+    
+    if(motifs.empty())
+    {
+        cerr << "Error: motifs array is empty." << '\n';
+        return(0);
+    }
+    
+    motiflen = motifs[0].length();
+    for(int i=1;i<motifs.size();i++)
+        if(motiflen != motifs[i].length())
+        {
+            cerr << "Error: motifs have different length" << '\n';
+            return(0);
+        }
+    motifhalf = motiflen / 2;
+    
+    motifsall = motifs;
+    for(int i=0;i<motifs.size();i++)
+    {
+        motif = CDNA::cDNA(motifs[i]);
+        if(find(motifs.begin(),motifs.end(),motif) == motifs.end())
+            motifsall.push_back(motif);
+    }
+    
+    results[RT_NULLBIN_NOVALUE] = 0;
+    results[RT_NULLBIN_NOBIN] = 0;
+    for(int i=0;i<bins.size();i++)
+        results[bins[i].binNum] = 0;
+    
+    // Load genome
+    CHumanGenome human;
+    human.InitializeHuman("37", HUMAN_PATH, ".fa", "FASTA");
+    
+    for(int i=0;i<human.chrCnt;i++)
+    {
+        for(unsigned long j=motifhalf;j<(human.chrLen[i]-(motiflen-motifhalf-1));j++)
+        {
+            for(int k=0;k<motifsall.size();k++)
+            {
+                break2 = 0;
+                for(int n=0;n<motiflen;n++)
+                {
+                    if(motifsall[k][n] == 'X')
+                        continue;
+                    if(human.dna[i][j-motifhalf+n] != motifsall[k][n])
+                    {
+                        break2 = 1;
+                        break;
+                    }
+                }
+                if(break2)
+                    continue;
+                bin = GetRTBin(i,j+1,bins);
+                results[bin]++;
+            }
+        }
+        cout << "chromosome:" << i << '\n';
+    }
+    
+    ofstream f;
+    f.open(OUT_PATH);
+    
+    for(it=results.begin(); it!=results.end(); ++it)
+        f << it->first << '\t' << it->second <<'\n';
+    
+    f.close();
+    
+    return(1);
+}

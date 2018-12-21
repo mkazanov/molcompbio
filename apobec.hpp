@@ -11,6 +11,11 @@
 
 #include <stdio.h>
 #include <string>
+#include <vector>
+#include "mutation.hpp"
+#include "genehuman.hpp"
+#include "expression.hpp"
+#include "replicationtime.hpp"
 
 using namespace std;
 
@@ -59,7 +64,15 @@ public:
     CResultsValue(){};
 };
 
-void AnalysisReplicationTiming();
-void AnalysisExpression();
-
+class CAPOBEC {
+public:
+    CMutations apobecMuts;
+    CMutations otherMuts;
+    void ClassifyMutations();
+    void AnalysisReplicationTiming(CMutations& muts, string resultsFilename);
+    void AnalysisExpression();
+    int GetExpressionBin(string sample, string chr, unsigned long pos, char isForwardMut, CHumanGenes& genes, CExpression& exp, vector<CExpressionBin>& expBins, int& strand, int& strandInconsistence);
+    void CalculateTargetsinRTBins();
+};
+    
 #endif /* apobec_hpp */
