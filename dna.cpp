@@ -8,5 +8,18 @@
 
 #include "dna.hpp"
 
+CDNAPos::CDNAPos(int chrNum_, unsigned long pos_)
+{
+    chrNum = chrNum_;
+    pos = pos_;
+}
+
+int CDNAPos::isNull()
+{
+    if(chrNum == -1)
+        return(1);
+    else
+        return(0);
+}
 
 

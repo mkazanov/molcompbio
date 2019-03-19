@@ -15,6 +15,7 @@
 #include "options.h"
 #include <iostream>
 #include <algorithm>
+#include "mutsignature.hpp"
 
 CReplicationTime::CReplicationTime(string chr_, string startpos_, string endpos_, string RTvalue_)
 {
@@ -180,77 +181,46 @@ void CReplicationTiming::SaveToFile(string path)
     f.close();
 }
 
-int CReplicationTiming::CalculateMotifinRTBins(vector<CRTBin> bins, vector<string> motifs, string OUT_PATH)
+int CReplicationTiming::CalculateMotifinRTBins(vector<CRTBin> bins, set<string> motifs, string OUT_PATH, CHumanGenome* phuman)
 {
+    CMutationSignature msobj;
     int bin;
     map<int,unsigned long> results;
     map<int,unsigned long>::iterator it;
-    vector<string> motifsall;
-    unsigned long motiflen,motifhalf;
-    int break2;
-    string motif;
+    set<string> motifsall;
+    long motiflen;
     
-    if(motifs.empty())
-    {
-        cerr << "Error: motifs array is empty." << '\n';
-        return(0);
-    }
-    
-    motiflen = motifs[0].length();
-    for(int i=1;i<motifs.size();i++)
-        if(motiflen != motifs[i].length())
-        {
-            cerr << "Error: motifs have different length" << '\n';
-            return(0);
-        }
-    motifhalf = motiflen / 2;
-    
-    motifsall = motifs;
-    for(int i=0;i<motifs.size();i++)
-    {
-        motif = CDNA::cDNA(motifs[i]);
-        if(find(motifs.begin(),motifs.end(),motif) == motifs.end())
-            motifsall.push_back(motif);
-    }
-    
+    msobj.CheckMotifsNotEmpty(motifs);
+    msobj.CheckMotifsSameLength(motifs);
+    motifsall = msobj.AddcMotifs(motifs);
+    motiflen = (motifsall.begin())->length();
+
     results[RT_NULLBIN_NOVALUE] = 0;
     results[RT_NULLBIN_NOBIN] = 0;
     for(int i=0;i<bins.size();i++)
         results[bins[i].binNum] = 0;
     
-    // Load genome
-    CHumanGenome human;
-    human.InitializeHuman("37", HUMAN_PATH, ".fa", "FASTA");
-    
-    for(int i=0;i<human.chrCnt;i++)
+    CDNAPos pos = CDNAPos(0,0);
+    int includeCurPos=1;
+    int chrNum = 0;
+    cout << "Chr:" << pos.chrNum << ", Pos:" << pos.pos << '\n';
+    for(pos=msobj.NextMotif(CDNAPos(0,0),motifsall,phuman,END_GENOME,includeCurPos);
+        !pos.isNull();
+        pos=msobj.NextMotif(pos,motifsall,phuman,END_GENOME))
     {
-        for(unsigned long j=motifhalf;j<(human.chrLen[i]-(motiflen-motifhalf-1));j++)
+        bin = GetRTBin(pos.chrNum,pos.pos+(motiflen/2)+1,bins);
+        results[bin]++;
+        if(chrNum != pos.chrNum)
         {
-            for(int k=0;k<motifsall.size();k++)
-            {
-                break2 = 0;
-                for(int n=0;n<motiflen;n++)
-                {
-                    if(motifsall[k][n] == 'X')
-                        continue;
-                    if(human.dna[i][j-motifhalf+n] != motifsall[k][n])
-                    {
-                        break2 = 1;
-                        break;
-                    }
-                }
-                if(break2)
-                    continue;
-                bin = GetRTBin(i,j+1,bins);
-                results[bin]++;
-            }
+            cout << "Chr:" << pos.chrNum << ", Pos:" << pos.pos << '\n';
+            chrNum = pos.chrNum;
         }
-        cout << "chromosome:" << i << '\n';
     }
     
     ofstream f;
     f.open(OUT_PATH);
     
+    f << "ReplicationBin" << '\t' << "TargetCnt" << '\n';
     for(it=results.begin(); it!=results.end(); ++it)
         f << it->first << '\t' << it->second <<'\n';
     

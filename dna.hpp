@@ -23,16 +23,26 @@ public:
         ret = dna;
         transform(ret.begin(),ret.end(),ret.begin(),::toupper);
         reverse(ret.begin(),ret.end());
-        replace(ret.begin(),ret.end(),'A','X');
+        replace(ret.begin(),ret.end(),'A','Y');
+        replace(ret.begin(),ret.end(),'T','Z');
+        replace(ret.begin(),ret.end(),'Z','A');
+        replace(ret.begin(),ret.end(),'Y','T');
         replace(ret.begin(),ret.end(),'C','Y');
         replace(ret.begin(),ret.end(),'G','Z');
-        replace(ret.begin(),ret.end(),'T','A');
-        replace(ret.begin(),ret.end(),'X','T');
-        replace(ret.begin(),ret.end(),'Y','G');
         replace(ret.begin(),ret.end(),'Z','C');
-        
+        replace(ret.begin(),ret.end(),'Y','G');
+
         return(ret);
     }
+};
+
+class CDNAPos{
+public:
+    int chrNum;
+    unsigned long pos;
+    CDNAPos(){};
+    CDNAPos(int chrNum_, unsigned long pos_);
+    int isNull();
 };
 
 #endif /* dna_hpp */

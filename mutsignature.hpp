@@ -9,8 +9,14 @@
 #ifndef mutsignature_hpp
 #define mutsignature_hpp
 
+#define END_GENOME 0
+#define END_CHROMOSOME 1
+
 #include <string>
 #include <stdio.h>
+#include "ghuman.hpp"
+#include <set>
+#include "dna.hpp"
 
 using namespace std;
 
@@ -22,6 +28,11 @@ public:
     CMutationSignature(string motif_, int mutationPos_, string newbase_);
     CMutationSignature(){};
     bool AnyNewBase();
+    int CheckMotifsNotEmpty(set<string> motifs);
+    int CheckMotifsSameLength(set<string> motifs);
+    set<string> AddcMotifs(set<string> motifs);
+    CDNAPos NextMotif(CDNAPos pos, set<string>motifsall, CHumanGenome* phuman, int end, int includeCurrentPos=0);
+    unsigned long CountMotifGenome(set<string> motifs, CHumanGenome* phuman);
 };
 
 #endif /* mutsignature_hpp */

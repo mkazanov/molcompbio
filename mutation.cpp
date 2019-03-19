@@ -98,20 +98,21 @@ void CMutations::FilterMutations(CMutations& filteredMutations, vector<CMutation
     string ss;
     unsigned long startPosShift, endPosShift;
     string gmotif;
+    int foundMutation;
     
     for(i=0;i<mutationsCnt;i++)
     {
+        m = mutations[i];
+        if (string(m.chr) == "M")
+            continue;
+        if (!cancers.empty() && cancers.find(string(m.cancer)) == cancers.end())
+            continue;
+        if (!samples.empty() && samples.find(string(m.sample)) == samples.end())
+            continue;
+        
+        foundMutation = 0;
         for(j=0;j<signatures.size();j++)
         {
-            m = mutations[i];
-            
-            if (string(m.chr) == "M")
-                continue;
-            if (!cancers.empty() && cancers.find(string(m.cancer)) == cancers.end())
-                continue;
-            if (!samples.empty() && samples.find(string(m.sample)) == samples.end())
-                continue;
-            
             s = signatures[j];
             startPosShift = 1 - s.mutationPos;
             endPosShift = s.motif.length() - s.mutationPos;
@@ -134,13 +135,16 @@ void CMutations::FilterMutations(CMutations& filteredMutations, vector<CMutation
                     else
                         m.isForwardStrand = -1;
                     filteredMutations.mutations.push_back(m);
+                    foundMutation = 1;
+                    break;
                 }
-            else
-            {
-                if(pOtherMutations!=NULL)
-                    pOtherMutations->mutations.push_back(m);
-            }
         }
+        if(foundMutation == 0)
+            if(pOtherMutations!=NULL)
+            {
+                m.isForwardStrand = -1;
+                pOtherMutations->mutations.push_back(m);
+            }
     }
 }
 

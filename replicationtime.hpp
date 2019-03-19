@@ -11,6 +11,7 @@
 
 #include <set>
 #include <string>
+#include "ghuman.hpp"
 
 #define RT_NULL 999999
 #define RT_NULLBIN_NOVALUE -1
@@ -18,6 +19,7 @@
 #define CHR_NULL -1
 #define STRAND_LEADING 1
 #define STRAND_LAGGING 0
+#define STRAND_NULL -1
 
 
 using namespace std;
@@ -63,7 +65,7 @@ public:
     int GetRTBin(int chrNum, unsigned long pos, vector<CRTBin> bins);
     void ReplicationStrand();
     void SaveToFile(string path);
-    int CalculateMotifinRTBins(vector<CRTBin> bins, vector<string> motifs, string OUT_PATH);
+    int CalculateMotifinRTBins(vector<CRTBin> bins, set<string> motifs, string OUT_PATH, CHumanGenome* phuman_ = NULL);
 };
 
 #endif /* replicationtime_hpp */

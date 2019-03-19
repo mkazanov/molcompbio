@@ -68,11 +68,12 @@ class CAPOBEC {
 public:
     CMutations apobecMuts;
     CMutations otherMuts;
-    void ClassifyMutations();
+    void ClassifyMutations(CHumanGenome* phuman_ = NULL);
     void AnalysisReplicationTiming(CMutations& muts, string resultsFilename);
-    void AnalysisExpression();
+    void AnalysisExpression(CMutations& muts, string resultsFilename);
     int GetExpressionBin(string sample, string chr, unsigned long pos, char isForwardMut, CHumanGenes& genes, CExpression& exp, vector<CExpressionBin>& expBins, int& strand, int& strandInconsistence);
-    void CalculateTargetsinRTBins();
+    void CalculateTargetsinRTBins(CHumanGenome* phuman_ = NULL);
+    void CalculateAPOBECEnrichment(CHumanGenome* phuman_ = NULL);
 };
     
 #endif /* apobec_hpp */
