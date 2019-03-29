@@ -24,6 +24,26 @@
 
 using namespace std;
 
+class CCancerSample{
+public:
+    string cancer;
+    string sample;
+    bool operator< (const CCancerSample &right) const
+    {
+        if (cancer < right.cancer)
+            return true;
+        else if (cancer == right.cancer)
+            return sample < right.sample;
+        else
+            return false;
+    }
+    CCancerSample(string cancer_, string sample_)
+    {
+        cancer = cancer_;
+        sample = sample_;
+    }
+};
+
 class CMutation{
 public:
     char cancer[STRLEN_CANCER+1];
@@ -53,6 +73,8 @@ public:
                          set<string> cancers,
                          set<string> samples,
                          CMutations* pOtherMutations);
+    set<CCancerSample> cancerSample;
+    void GetUniqueCancersSamples();
     void SaveToFile(string path);
 };
 

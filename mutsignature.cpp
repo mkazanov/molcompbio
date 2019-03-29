@@ -63,16 +63,14 @@ set<string>  CMutationSignature::AddcMotifs(set<string> motifs)
     return(motifsall);
 }
 
-CDNAPos CMutationSignature::NextMotif(CDNAPos pos, set<string>motifsall, CHumanGenome* phuman, int end, int includeCurrentPos)
+CDNAPos CMutationSignature::NextMotif(CDNAPos pos, char** motifsarr, int motifsnum, int motiflen, CHumanGenome* phuman, int end, int includeCurrentPos)
 {
-    unsigned long motiflen;
     CDNAPos ret = CDNAPos(-1,0);
     int endChrNum;
-    set<string>::iterator m;
+    int i,k,n;
+    unsigned long j;
     int break2;
     unsigned long startpos;
-    
-    motiflen = (motifsall.begin())->length();
     
     if(end == END_CHROMOSOME)
         endChrNum = pos.chrNum + 1;
@@ -83,18 +81,19 @@ CDNAPos CMutationSignature::NextMotif(CDNAPos pos, set<string>motifsall, CHumanG
         startpos = pos.pos;
     else
         startpos = pos.pos + 1;
-    for(int i=pos.chrNum;i<endChrNum;i++)
+    
+    for(i=pos.chrNum;i<endChrNum;i++)
     {
-        for(unsigned long j=startpos;j<(phuman->chrLen[i]-motiflen+1);j++)
+        for(j=startpos;j<(phuman->chrLen[i]-motiflen+1);j++)
         {
-            for(m=motifsall.begin();m!=motifsall.end();m++)
+            for(k=0;k<motifsnum;k++)
             {
                 break2 = 0;
-                for(int n=0;n<motiflen;n++)
+                for(n=0;n<motiflen;n++)
                 {
-                    if((*m)[n] == 'X')
+                    if(motifsarr[k][n] == 'X')
                         continue;
-                    if(phuman->dna[i][j+n] != (*m)[n])
+                    if(phuman->dna[i][j+n] != motifsarr[k][n])
                     {
                         break2 = 1;
                         break;
@@ -116,16 +115,35 @@ unsigned long CMutationSignature::CountMotifGenome(set<string> motifs, CHumanGen
 {
     unsigned long res = 0;
     set<string> motifsall;
+    set<string>::iterator si;
     int includeCurPos=1;
+    char** motifsarr;
+    int motiflen, motifsnum;
+    int i;
     
     CheckMotifsNotEmpty(motifs);
     CheckMotifsSameLength(motifs);
     motifsall = AddcMotifs(motifs);
+    motiflen = (motifsall.begin())->length();
+    motifsnum = motifsall.size();
+    
+    // Prepare char array for copying motifs
+    motifsarr = new char*[motifsall.size()];
+    for(i=0;i<motifsall.size();i++)
+        motifsarr[i] = new char[motiflen];
+    
+    // Copy motifs to char array
+    i = 0;
+    for(si=motifsall.begin();si!=motifsall.end();si++)
+    {
+        strncpy(motifsarr[i],(*si).c_str(),(*si).length());
+        i++;
+    }
     
     CDNAPos pos;
-    for(pos=NextMotif(CDNAPos(0,0),motifsall,phuman,END_GENOME,includeCurPos);
+    for(pos=NextMotif(CDNAPos(0,0),motifsarr,motifsnum,motiflen,phuman,END_GENOME,includeCurPos);
         !pos.isNull();
-        pos=NextMotif(pos,motifsall,phuman,END_GENOME))
+        pos=NextMotif(pos,motifsarr,motifsnum,motiflen,phuman,END_GENOME))
         res++;
     
     return(res);

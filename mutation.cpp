@@ -161,3 +161,10 @@ void CMutations::SaveToFile(string path)
     
     f.close();
 }
+
+void CMutations::GetUniqueCancersSamples()
+{
+    cancerSample.clear();
+    for(int i=0;i<mutations.size();i++)
+        cancerSample.insert(CCancerSample(mutations[i].cancer,mutations[i].sample));
+}

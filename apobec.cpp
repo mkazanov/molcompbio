@@ -12,6 +12,7 @@
 #include <map>
 #include <fstream>
 #include "options.h"
+#include <ctime>
 
 CResultsKey::CResultsKey(string cancer_, string sample_, int bin_)
 {
@@ -72,6 +73,8 @@ void CAPOBEC::ClassifyMutations(CHumanGenome* phuman_)
     cancers.insert("LUSC");
     m.FilterMutations(apobecMuts,signatures,(*phuman),cancers,samples,&otherMuts);
     //apobecMuts.SaveToFile("/Users/mar/BIO/BIODATA/CancerMutations/Fredriksson_et_al_2014/mutations_apobec.tsv");
+    
+    apobecMuts.GetUniqueCancersSamples();
     
     // Free human genome
     if(!phuman_)
@@ -267,6 +270,7 @@ void CAPOBEC::AnalysisExpression(CMutations& muts, string resultsFilename)
     genes.LoadGenes("/Users/mar/BIO/BIODATA/HUMAN/CH37/ref_GRCh37.p5_top_level.gff3");
     genes.PrepareForSearch();
     
+    map<string,CExpression*> expmap;
     CExpression blca,brca,hnsc,luad,lusc;
     
     blca.LoadExpression("/Users/mar/BIO/PROJECTS/APOBEC/Project1_TranscriptionLevel/expression/unpivot_expression_BLCA.txt");
@@ -274,7 +278,12 @@ void CAPOBEC::AnalysisExpression(CMutations& muts, string resultsFilename)
     hnsc.LoadExpression("/Users/mar/BIO/PROJECTS/APOBEC/Project1_TranscriptionLevel/expression/unpivot_expression_HNSC.txt");
     luad.LoadExpression("/Users/mar/BIO/PROJECTS/APOBEC/Project1_TranscriptionLevel/expression/unpivot_expression_LUAD.txt");
     lusc.LoadExpression("/Users/mar/BIO/PROJECTS/APOBEC/Project1_TranscriptionLevel/expression/unpivot_expression_LUSC.txt");
-
+    expmap["BLCA"] = &blca;
+    expmap["BRCA"] = &brca;
+    expmap["HNSC"] = &hnsc;
+    expmap["LUAD"] = &luad;
+    expmap["LUSC"] = &lusc;
+    
     vector<CExpressionBin> expBins;
     
     expBins.emplace_back(0,-9999999,0);
@@ -297,26 +306,7 @@ void CAPOBEC::AnalysisExpression(CMutations& muts, string resultsFilename)
     for(int i=0;i<muts.mutations.size();i++)
     {
         mut = muts.mutations[i];
-        if (string(mut.cancer) == "BLCA")
-        {
-             bin = GetExpressionBin(string(mut.sample), mut.chr, mut.pos, mut.isForwardStrand, genes, blca, expBins, strand, strandInconsistence);
-        }
-        else if (string(mut.cancer) == "BRCA")
-        {
-            bin = GetExpressionBin(string(mut.sample), mut.chr, mut.pos, mut.isForwardStrand, genes, brca, expBins, strand, strandInconsistence);
-        }
-        else if (string(mut.cancer) == "HNSC")
-        {
-            bin = GetExpressionBin(string(mut.sample), mut.chr, mut.pos, mut.isForwardStrand, genes, hnsc, expBins, strand, strandInconsistence);
-        }
-        else if (string(mut.cancer) == "LUAD")
-        {
-            bin = GetExpressionBin(string(mut.sample), mut.chr, mut.pos, mut.isForwardStrand, genes, luad, expBins, strand, strandInconsistence);
-        }
-        else if (string(mut.cancer) == "LUSC")
-        {
-            bin = GetExpressionBin(string(mut.sample), mut.chr, mut.pos, mut.isForwardStrand, genes, lusc, expBins, strand, strandInconsistence);
-        }
+        bin = GetExpressionBin(string(mut.sample), mut.chr, mut.pos, mut.isForwardStrand, genes, (*expmap[string(mut.cancer)]), expBins, strand, strandInconsistence);
         
         it = results.find(CResultsKey(string(mut.cancer),string(mut.sample),bin));
         if ( it == results.end())
@@ -349,6 +339,7 @@ void CAPOBEC::AnalysisExpression(CMutations& muts, string resultsFilename)
     path = string(RESULTS_FOLDER)+string("/")+resultsFilename;
     f.open(path.c_str());
     
+    f << "Cancer" << '\t' << "Sample" << '\t' << "PlusStrandConsistent" << '\t' << "MinusStrandConsistent" << '\t' << "PlusStrandAll" << '\t' << "MinusStrandAll" << '\n';
     for(it=results.begin(); it!=results.end(); ++it)
         f << it->first.cancer << '\t' << it->first.sample << '\t' << it->first.bin << '\t' << it->second.mutCnt << '\t' << it-> second.plusStrandConsistent << '\t' << it->second.minusStrandConsistent << '\t' << it->second.plusStrandAll << '\t' << it->second.minusStrandAll <<'\n';
     
@@ -416,9 +407,57 @@ void CAPOBEC::CalculateTargetsinRTBins(CHumanGenome* phuman)
 
 }
 
-/*
-void CAPOBEC::CalculateTargetsinExpressionBins()
+
+set<CCancerSample> CAPOBEC::LoadCancerSamples(string path)
 {
+    set<CCancerSample> ret;
+    string line;
+    int chrNum;
+    
+    ifstream f(path);
+    if (!f.is_open())
+        return(ret);
+
+    vector<string> flds;
+    getline(f, line);
+    while(getline(f, line))
+    {
+        if (line.length() != 0)
+        {
+            flds = split(line);
+            ret.emplace(flds[0],flds[1]);
+        }
+    }
+    
+    f.close();
+    
+    return(ret);
+}
+
+
+void CAPOBEC::CalculateTargetsinExpressionBins(CHumanGenome* phuman, string cancer, string sample)
+{
+    int bin;
+    int i;
+    
+    CHumanGenes genes;
+    genes.LoadGenes(string(HUMAN_GENES));
+    genes.PrepareForSearch();
+
+    CExpression blca,brca,hnsc,luad,lusc;
+    map<string,CExpression*> expmap;
+    
+    blca.LoadExpression(string(HUMAN_GENES)+"/unpivot_expression_BLCA.txt");
+    brca.LoadExpression(string(HUMAN_GENES)+"/unpivot_expression_BRCA.txt");
+    hnsc.LoadExpression(string(HUMAN_GENES)+"/unpivot_expression_HNSC.txt");
+    luad.LoadExpression(string(HUMAN_GENES)+"/unpivot_expression_LUAD.txt");
+    lusc.LoadExpression(string(HUMAN_GENES)+"/unpivot_expression_LUSC.txt");
+    expmap["BLCA"] = &blca;
+    expmap["BRCA"] = &brca;
+    expmap["HNSC"] = &hnsc;
+    expmap["LUAD"] = &luad;
+    expmap["LUSC"] = &lusc;
+    
     vector<CExpressionBin> expBins;
     
     expBins.emplace_back(0,-9999999,0);
@@ -430,9 +469,105 @@ void CAPOBEC::CalculateTargetsinExpressionBins()
     expBins.emplace_back(6,1000,2000);
     expBins.emplace_back(7,2000,99999999999);
 
+    set<string> motifs;
+    motifs.insert("TCA");
+    motifs.insert("TCT");
+    set<string> motifsall;
+    set<string>::iterator si;
+    int motiflen;
+    
+    CMutationSignature msobj;
+    char** motifsarr;
+    msobj.CheckMotifsNotEmpty(motifs);
+    msobj.CheckMotifsSameLength(motifs);
+    motifsall = msobj.AddcMotifs(motifs);
+    motiflen = (motifsall.begin())->length();
+    
+    // Prepare char array for copying motifs
+    motifsarr = new char*[motifsall.size()];
+    for(i=0;i<motifsall.size();i++)
+        motifsarr[i] = new char[motiflen];
+    
+    // Copy motifs to char array
+    i = 0;
+    for(si=motifsall.begin();si!=motifsall.end();si++)
+    {
+        strncpy(motifsarr[i],(*si).c_str(),(*si).length());
+        i++;
+    }
+    
+    map<CResultsKey, CResultsValue> results;
+    map<CResultsKey, CResultsValue>::iterator it;
+    
+    
+    CDNAPos pos = CDNAPos(0,0);
+    int includeCurPos=1;
+    set<CCancerSample>::iterator s;
+    int strand;
+    int strandInconsistence;
+    CResultsValue rv;
+    pair<map<CResultsKey, CResultsValue>::iterator, bool> res;
+    
+    clock_t time,time1=0,time2=0, time3=0;
+    
+    for(s=apobecMuts.cancerSample.begin();s!=apobecMuts.cancerSample.end();s++)
+        for(bin=-2;bin<8;bin++)
+        {
+            rv = CResultsValue(0,0,0,0,0);
+            results.insert(pair<CResultsKey, CResultsValue>(CResultsKey((*s).cancer,(*s).sample,bin), rv));
+
+        }
+    
+    int motifsnum;
+    motifsnum = motifsall.size();
+    unsigned long cnt[10];
+    
+    set<CCancerSample> doneCancerSamples;
+    doneCancerSamples = LoadCancerSamples(string(RESULTS_FOLDER)+"/TCW_in_EXPbins.txt");
+    for(s=apobecMuts.cancerSample.begin();s!=apobecMuts.cancerSample.end();s++)
+    {
+        cout << "Cancer:" << (*s).cancer << ", Sample:" << (*s).sample << '\n';
+        if(doneCancerSamples.find((*s)) != doneCancerSamples.end())
+            continue;
+        for(i=0;i<10;i++)
+            cnt[i] = 0;
+        time = clock();
+        for(pos=msobj.NextMotif(CDNAPos(0,0),motifsarr,motifsnum,motiflen,phuman,END_GENOME,includeCurPos);
+            !pos.isNull();
+            pos=msobj.NextMotif(pos,motifsarr,motifsnum,motiflen,phuman,END_GENOME))
+        {
+            time3 += (clock() - time);
+            
+            time = clock();
+            bin = GetExpressionBin((*s).sample, phuman->chrName[pos.chrNum], pos.pos, 1, genes, (*expmap[(*s).cancer]), expBins, strand, strandInconsistence);
+            time1 += (clock()-time);
+            
+            time = clock();
+            cnt[bin+2]++;
+            time2 += (clock()-time);
+            
+            time = clock();
+        }
+        for(i=0;i<10;i++)
+            results[CResultsKey((*s).cancer,(*s).sample,i-2)].mutCnt = cnt[i];
+        
+        // Save current results to file
+        ofstream f;
+        string path;
+        path = string(RESULTS_FOLDER)+"/TCW_in_EXPbins.txt";
+        f.open(path.c_str());
+        
+        f << "Cancer" << '\t' << "Sample" << '\t' << "ExpressionBin" << '\t' <<  "TargetCnt" << '\n';
+        for(it=results.begin(); it!=results.end(); ++it)
+            f << it->first.cancer << '\t' << it->first.sample << '\t' << it->first.bin << '\t' << it->second.mutCnt <<'\n';
+        
+        f.close();
+        
+        cout << "Time1:" << time1 << ", time2:" << time2 << ", time3: " << time3 << '\n';
+    }
 }
 
-*/
+
 
 void CAPOBEC::CalculateAPOBECEnrichment(CHumanGenome* phuman_)
 {

@@ -25,6 +25,7 @@ public:
     string geneName;
     CHumanGene(string chr_, string starpos_, string endpos_, string strand_, string info_);
     CHumanGene(int chrNum_, unsigned long pos_);
+    CHumanGene(int chrNum_, unsigned long startpos_, unsigned long endpos_);
     bool operator< (const CHumanGene &right) const
     {
         if (chrNum < right.chrNum)
@@ -33,6 +34,10 @@ public:
             return startpos < right.startpos;
         else
             return false;
+    }
+    int isNull()
+    {
+        return((chrNum == -1) ? 1 : 0);
     }
 };
 
@@ -43,6 +48,7 @@ public:
     void PrepareForSearch();
     int GetGenesByPos(int chrNum, unsigned long pos, vector<CHumanGene>& geneList);
     void SaveToFile(string path);
+    void MergeIntervals(vector<CHumanGene>& ret);
 };
 
 #endif /* genehuman_hpp */

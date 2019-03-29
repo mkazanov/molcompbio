@@ -10,6 +10,7 @@
 #include <fstream>
 #include <vector>
 #include "service.h"
+#include <iostream>
 
 CExpressionKey::CExpressionKey(string geneId_, string sample_)
 {
@@ -33,6 +34,8 @@ CExpressionBin::CExpressionBin(int binNum_, double expressionLeft_, double expre
 
 void CExpression::LoadExpression(string path)
 {
+    cout << "Load expression" << '\n';
+    
     string line;
     string geneId,sample;
     

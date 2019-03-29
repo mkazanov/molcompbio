@@ -73,7 +73,9 @@ public:
     void AnalysisExpression(CMutations& muts, string resultsFilename);
     int GetExpressionBin(string sample, string chr, unsigned long pos, char isForwardMut, CHumanGenes& genes, CExpression& exp, vector<CExpressionBin>& expBins, int& strand, int& strandInconsistence);
     void CalculateTargetsinRTBins(CHumanGenome* phuman_ = NULL);
+    void CalculateTargetsinExpressionBins(CHumanGenome* phuman = NULL, string cancer = "", string sample = "");
     void CalculateAPOBECEnrichment(CHumanGenome* phuman_ = NULL);
+    set<CCancerSample> LoadCancerSamples(string path);
 };
     
 #endif /* apobec_hpp */

@@ -14,31 +14,33 @@
 #include "apobec.hpp"
 #include "mutation.hpp"
 #include "dna.hpp"
+#include <fstream>
 
 int main(int argc, const char * argv[]) {
     
-        CMutationSignature s;
-        set<string> motifs;
-    int cytosineCnt;
-    
-
-    
-    CAPOBEC a;
-
     CHumanGenome human;
     human.InitializeHuman("37", HUMAN_PATH, ".fa", "FASTA");
     
- /*   a.ClassifyMutations(&human);
-
-    a.CalculateAPOBECEnrichment(&human);
+    CAPOBEC a;
+    
+    a.ClassifyMutations(&human);
+    
+    /*a.CalculateAPOBECEnrichment(&human);
+    
+    // Replication timing
     
     a.AnalysisReplicationTiming(a.apobecMuts,"results_RT_APOBEC.txt");
-    a.AnalysisReplicationTiming(a.otherMuts,"results_RT_OTHER.txt");*/
+    a.AnalysisReplicationTiming(a.otherMuts,"results_RT_OTHER.txt");
 
-    a.CalculateTargetsinRTBins(&human);
+    a.CalculateTargetsinRTBins(&human);*/
     
-    //a.AnalysisExpression(a.apobecMuts, "results_expression_APOBEC.txt");
-    //a.AnalysisExpression(a.otherMuts, "results_expression_OTHER.txt");
+    
+    // Expression
+    
+    //a.AnalysisExpression(a.apobecMuts, "results_exp_APOBEC.txt");
+    //a.AnalysisExpression(a.otherMuts, "results_exp_OTHER.txt");
+
+    a.CalculateTargetsinExpressionBins(&human);
     
     return 0;
 }

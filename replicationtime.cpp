@@ -188,12 +188,28 @@ int CReplicationTiming::CalculateMotifinRTBins(vector<CRTBin> bins, set<string> 
     map<int,unsigned long> results;
     map<int,unsigned long>::iterator it;
     set<string> motifsall;
-    long motiflen;
+    set<string>::iterator si;
+    long motiflen,motifsnum;
+    char** motifsarr;
+    int i;
     
     msobj.CheckMotifsNotEmpty(motifs);
     msobj.CheckMotifsSameLength(motifs);
     motifsall = msobj.AddcMotifs(motifs);
     motiflen = (motifsall.begin())->length();
+    
+    // Prepare char array for copying motifs
+    motifsarr = new char*[motifsall.size()];
+    for(i=0;i<motifsall.size();i++)
+        motifsarr[i] = new char[motiflen];
+    
+    // Copy motifs to char array
+    i = 0;
+    for(si=motifsall.begin();si!=motifsall.end();si++)
+    {
+        strncpy(motifsarr[i],(*si).c_str(),(*si).length());
+        i++;
+    }
 
     results[RT_NULLBIN_NOVALUE] = 0;
     results[RT_NULLBIN_NOBIN] = 0;
@@ -204,9 +220,9 @@ int CReplicationTiming::CalculateMotifinRTBins(vector<CRTBin> bins, set<string> 
     int includeCurPos=1;
     int chrNum = 0;
     cout << "Chr:" << pos.chrNum << ", Pos:" << pos.pos << '\n';
-    for(pos=msobj.NextMotif(CDNAPos(0,0),motifsall,phuman,END_GENOME,includeCurPos);
+    for(pos=msobj.NextMotif(CDNAPos(0,0),motifsarr,motifsnum,motiflen,phuman,END_GENOME,includeCurPos);
         !pos.isNull();
-        pos=msobj.NextMotif(pos,motifsall,phuman,END_GENOME))
+        pos=msobj.NextMotif(pos,motifsarr,motifsnum,motiflen,phuman,END_GENOME))
     {
         bin = GetRTBin(pos.chrNum,pos.pos+(motiflen/2)+1,bins);
         results[bin]++;

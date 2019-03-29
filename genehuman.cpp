@@ -10,6 +10,7 @@
 #include <fstream>
 #include "service.h"
 #include "ghuman.hpp"
+#include <iostream>
 
 CHumanGene::CHumanGene(string chr_, string startpos_, string endpos_, string strand_, string info_)
 {
@@ -39,9 +40,17 @@ CHumanGene::CHumanGene(int chrNum_, unsigned long pos_)
     startpos = pos_;
 }
 
+CHumanGene::CHumanGene(int chrNum_, unsigned long startpos_, unsigned long endpos_)
+{
+    chrNum = chrNum_;
+    startpos = startpos_;
+    endpos = endpos_;
+}
 
 void CHumanGenes::LoadGenes(string path)
 {
+    cout << "Loading genes" << '\n';
+    
     string line;
     int chrNum;
     
@@ -102,6 +111,8 @@ int CHumanGenes::GetGenesByPos(int chrNum, unsigned long pos, vector<CHumanGene>
     CHumanGene g(chrNum,pos);
 
     it = genes.upper_bound(g);
+    if(it == genes.begin())
+        return(0);
     it--;
     while(1)
     {
@@ -113,9 +124,33 @@ int CHumanGenes::GetGenesByPos(int chrNum, unsigned long pos, vector<CHumanGene>
     }
     
     if(geneList.empty())
-        return(1);
-    else
         return(0);
+    else
+        return(1);
+}
+
+void CHumanGenes::MergeIntervals(vector<CHumanGene>& ret)
+{
+    set<CHumanGene>::iterator si;
+    CHumanGene prevGene(-1,0);
+    unsigned long startpos,endpos;
+
+    for(si=genes.begin();si!=genes.end();si++)
+    {
+        if((*si).maxendpos == 0 || prevGene.chrNum != (*si).chrNum || prevGene.isNull())
+        {
+            if(!prevGene.isNull())
+                ret.emplace_back(prevGene.chrNum,startpos,endpos);
+            startpos = (*si).startpos;
+            endpos = (*si).endpos;
+        }
+        else
+        {
+            endpos = ((*si).endpos > endpos ? (*si).endpos : endpos);
+        }
+        prevGene = (*si);
+    }
+    ret.emplace_back(prevGene.chrNum,startpos,endpos);
 }
 
 void CHumanGenes::SaveToFile(string path)
