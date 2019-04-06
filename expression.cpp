@@ -8,7 +8,6 @@
 
 #include "expression.hpp"
 #include <fstream>
-#include <vector>
 #include "service.h"
 #include <iostream>
 
@@ -39,11 +38,11 @@ void CExpression::LoadExpression(string path)
     string line;
     string geneId,sample;
     
-    ifstream f(path);
+    ifstream f(path.c_str());
     if (!f.is_open())
     {
         printf("File not exists\n");
-        exit(1);
+        return;
     }
     
     vector<string> flds,flds1;
@@ -84,86 +83,3 @@ int CExpression::GetExpressionBin(double expValue, vector<CExpressionBin> bins)
             return(bins[i].binNum);
     return(-1);
 }
-
-/*
-
-int CReplicationTiming::CalculateMotifinRTBins(vector<CExpressionBin> bins, vector<string> motifs, string OUT_PATH)
-{
-    int bin;
-    map<int,unsigned long> results;
-    map<int,unsigned long>::iterator it;
-    vector<string> motifsall;
-    unsigned long motiflen,motifhalf;
-    int break2;
-    string motif;
-    
-    if(motifs.empty())
-    {
-        cerr << "Error: motifs array is empty." << '\n';
-        return(0);
-    }
-    
-    motiflen = motifs[0].length();
-    for(int i=1;i<motifs.size();i++)
-        if(motiflen != motifs[i].length())
-        {
-            cerr << "Error: motifs have different length" << '\n';
-            return(0);
-        }
-    motifhalf = motiflen / 2;
-    
-    motifsall = motifs;
-    for(int i=0;i<motifs.size();i++)
-    {
-        motif = CDNA::cDNA(motifs[i]);
-        if(find(motifs.begin(),motifs.end(),motif) == motifs.end())
-            motifsall.push_back(motif);
-    }
-    
-    results[RT_NULLBIN_NOVALUE] = 0;
-    results[RT_NULLBIN_NOBIN] = 0;
-    for(int i=0;i<bins.size();i++)
-        results[bins[i].binNum] = 0;
-    
-    // Load genome
-    CHumanGenome human;
-    human.InitializeHuman("37", HUMAN_PATH, ".fa", "FASTA");
-    
-    for(int i=0;i<human.chrCnt;i++)
-    {
-        for(unsigned long j=motifhalf;j<(human.chrLen[i]-(motiflen-motifhalf-1));j++)
-        {
-            for(int k=0;k<motifsall.size();k++)
-            {
-                break2 = 0;
-                for(int n=0;n<motiflen;n++)
-                {
-                    if(motifsall[k][n] == 'X')
-                        continue;
-                    if(human.dna[i][j-motifhalf+n] != motifsall[k][n])
-                    {
-                        break2 = 1;
-                        break;
-                    }
-                }
-                if(break2)
-                    continue;
-                bin = GetRTBin(i,j+1,bins);
-                results[bin]++;
-            }
-        }
-        cout << "chromosome:" << i << '\n';
-    }
-    
-    ofstream f;
-    f.open(OUT_PATH);
-    
-    for(it=results.begin(); it!=results.end(); ++it)
-        f << it->first << '\t' << it->second <<'\n';
-    
-    f.close();
-    
-    return(1);
-}
-
-*/

@@ -16,11 +16,11 @@ void CReader::ReadFile2Memory(string path, string format, char** buffer, int len
     string line;
     int i=0;
     
-    ifstream f(path);
+    ifstream f(path.c_str());
     if (!f.is_open())
     {
         printf("File not exists\n");
-        exit(1);
+        return;
     }
     
     (*buffer) = new char[len+1];
@@ -31,7 +31,7 @@ void CReader::ReadFile2Memory(string path, string format, char** buffer, int len
         if (line[0] != '>')
         {
             printf("Not a FASTA file\n");
-            exit(1);
+            return;
         }
         while(getline(f, line))
         {

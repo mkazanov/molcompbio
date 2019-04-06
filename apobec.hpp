@@ -64,6 +64,46 @@ public:
     CResultsValue(){};
 };
 
+class CMapKey {
+public:
+    string cancer;
+    string sample;
+    CMapKey(string cancer_, string sample_)
+    {
+        cancer = cancer_;
+        sample = sample_;
+    }
+    bool operator< (const CMapKey &right) const
+    {
+        if (cancer < right.cancer)
+            return true;
+        else if (cancer > right.cancer)
+            return false;
+        else
+        {
+            if (sample < right.sample)
+                return true;
+            else
+                return false;
+        }
+    }
+};
+
+class CMapValue {
+public:
+    unsigned long APOBECmutsCnt;
+    unsigned long cytosineMutsCnt;
+    double enrichment;
+    double enrichmentExcludeTCW;
+    CMapValue(unsigned long APOBECmutsCnt_, unsigned long cytosineMutsCnt_, double enrichment_, double enrichmentExcludeTCW_)
+    {
+        APOBECmutsCnt = APOBECmutsCnt_;
+        cytosineMutsCnt = cytosineMutsCnt_;
+        enrichment = enrichment_;
+        enrichmentExcludeTCW = enrichmentExcludeTCW_;
+    }
+};
+
 class CAPOBEC {
 public:
     CMutations apobecMuts;

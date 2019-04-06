@@ -10,6 +10,7 @@
 #include <set>
 #include "options.h"
 #include <iostream>
+#include <cstring>
 
 CMutationSignature::CMutationSignature(string motif_, int mutationPos_, string newbase_)
 {

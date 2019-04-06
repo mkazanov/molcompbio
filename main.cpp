@@ -10,7 +10,6 @@
 #include <iostream>
 #include "biogenome.hpp"
 #include "ghuman.hpp"
-#include "dnatest.hpp"
 #include "apobec.hpp"
 #include "mutation.hpp"
 #include "dna.hpp"
@@ -40,7 +39,10 @@ int main(int argc, const char * argv[]) {
     //a.AnalysisExpression(a.apobecMuts, "results_exp_APOBEC.txt");
     //a.AnalysisExpression(a.otherMuts, "results_exp_OTHER.txt");
 
-    a.CalculateTargetsinExpressionBins(&human);
+    if(argc > 1)
+        a.CalculateTargetsinExpressionBins(&human,argv[1],argv[2]);
+    else
+        a.CalculateTargetsinExpressionBins(&human);
     
     return 0;
 }

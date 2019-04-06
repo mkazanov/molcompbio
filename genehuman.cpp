@@ -54,11 +54,11 @@ void CHumanGenes::LoadGenes(string path)
     string line;
     int chrNum;
     
-    ifstream f(path);
+    ifstream f(path.c_str());
     if (!f.is_open())
     {
         printf("File not exists\n");
-        exit(1);
+        return;
     }
 
     vector<string> flds;
@@ -74,7 +74,7 @@ void CHumanGenes::LoadGenes(string path)
             chrNum = CHumanGenome::GetChrFromNCBIName(flds[0]);
             if(chrNum < 0 || chrNum > 23)
                 continue;
-            genes.emplace(flds[0],flds[3],flds[4],flds[6],flds[8]);
+            genes.insert(CHumanGene(flds[0],flds[3],flds[4],flds[6],flds[8]));
         }
     }
     
@@ -140,7 +140,7 @@ void CHumanGenes::MergeIntervals(vector<CHumanGene>& ret)
         if((*si).maxendpos == 0 || prevGene.chrNum != (*si).chrNum || prevGene.isNull())
         {
             if(!prevGene.isNull())
-                ret.emplace_back(prevGene.chrNum,startpos,endpos);
+                ret.push_back(CHumanGene(prevGene.chrNum,startpos,endpos));
             startpos = (*si).startpos;
             endpos = (*si).endpos;
         }
@@ -150,13 +150,13 @@ void CHumanGenes::MergeIntervals(vector<CHumanGene>& ret)
         }
         prevGene = (*si);
     }
-    ret.emplace_back(prevGene.chrNum,startpos,endpos);
+    ret.push_back(CHumanGene(prevGene.chrNum,startpos,endpos));
 }
 
 void CHumanGenes::SaveToFile(string path)
 {
     ofstream f;
-    f.open(path);
+    f.open(path.c_str());
     set<CHumanGene>::iterator it;
     
     for(it=genes.begin();it!=genes.end();++it)

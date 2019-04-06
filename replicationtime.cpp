@@ -16,6 +16,7 @@
 #include <iostream>
 #include <algorithm>
 #include "mutsignature.hpp"
+#include <cstring>
 
 CReplicationTime::CReplicationTime(string chr_, string startpos_, string endpos_, string RTvalue_)
 {
@@ -51,7 +52,7 @@ void CReplicationTiming::LoadReplicationTiming(string path, int isHeader)
     string line;
     clock_t c1,c2;
     
-    ifstream f(path);
+    ifstream f(path.c_str());
     if (!f.is_open())
     {
         printf("File not exists\n");
@@ -70,7 +71,7 @@ void CReplicationTiming::LoadReplicationTiming(string path, int isHeader)
         if (line.length() != 0)
         {
             flds = split(line);
-            RTs.emplace(flds[0],flds[1],flds[2],flds[3]);
+            RTs.insert(CReplicationTime(flds[0],flds[1],flds[2],flds[3]));
             i++;
         }
     }
@@ -153,8 +154,8 @@ void CReplicationTiming::ReplicationStrand()
     for(it=RTs.begin();it!=RTs.end();++it)
     {
         if(it != RTs.begin())
-            previt = prev(it);
-        nextit = next(it);
+            previt = it--;
+        nextit = it++;
         if(it == RTs.begin() || previt->chrNum != it->chrNum || nextit->chrNum != it->chrNum)
             it->isForward = -1;
         else
@@ -172,7 +173,7 @@ void CReplicationTiming::ReplicationStrand()
 void CReplicationTiming::SaveToFile(string path)
 {
     ofstream f;
-    f.open(path);
+    f.open(path.c_str());
     set<CReplicationTime>::iterator it;
 
     for(it=RTs.begin();it!=RTs.end();++it)
@@ -234,7 +235,7 @@ int CReplicationTiming::CalculateMotifinRTBins(vector<CRTBin> bins, set<string> 
     }
     
     ofstream f;
-    f.open(OUT_PATH);
+    f.open(OUT_PATH.c_str());
     
     f << "ReplicationBin" << '\t' << "TargetCnt" << '\n';
     for(it=results.begin(); it!=results.end(); ++it)

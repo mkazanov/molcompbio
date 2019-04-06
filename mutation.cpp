@@ -12,8 +12,6 @@
 #include <fstream>
 #include <iostream>
 #include "service.h"
-#include <chrono>
-#include <thread>
 
 CMutation::CMutation(string cancer_,
                      string sample_,
@@ -26,8 +24,9 @@ CMutation::CMutation(string cancer_,
     cancer[STRLEN_CANCER] = '\0';
     sample_.copy(sample,STRLEN_SAMPLE);
     sample[STRLEN_SAMPLE] = '\0';
-    chr_.copy(chr,STRLEN_CHR);
-    chr[STRLEN_CHR] = '\0';
+    for(int i=0;i<(STRLEN_CHR+1);i++)
+        chr[i] = '\0';
+    chr_.copy(chr,chr_.length());
     pos = str2ul(pos_.c_str());
     refallele = refallele_;
     varallele = varallele_;
@@ -39,7 +38,7 @@ void CMutations::LoadMutations(string path, int isHeader)
     string line;
     clock_t c1,c2;
     
-    ifstream f(path);
+    ifstream f(path.c_str());
     if (!f.is_open())
     {
         printf("File not exists\n");
@@ -78,7 +77,8 @@ void CMutations::LoadMutations(string path, int isHeader)
         if (line.length() != 0)
         {
             flds = split(line);
-            mutations.emplace_back(flds[1],flds[0],flds[2],flds[3],flds[4],flds[5]);
+            assert(flds[2] != "X2");
+            mutations.push_back(CMutation(flds[1],flds[0],flds[2],flds[3],flds[4],flds[5]));
             i++;
         }
     }
@@ -100,6 +100,8 @@ void CMutations::FilterMutations(CMutations& filteredMutations, vector<CMutation
     string gmotif;
     int foundMutation;
     
+    printf("Mutation filtering ...");
+    
     for(i=0;i<mutationsCnt;i++)
     {
         m = mutations[i];
@@ -118,6 +120,7 @@ void CMutations::FilterMutations(CMutations& filteredMutations, vector<CMutation
             endPosShift = s.motif.length() - s.mutationPos;
             mutBase = s.motif[s.mutationPos-1];
             ss = string(m.chr);
+            assert(ss != "X2");
             gmotif = human.dnaSubstr(human.GetChrNum(string(m.chr)),m.pos+startPosShift,m.pos+endPosShift);
                         
             if ((m.refallele == mutBase &&
@@ -146,12 +149,13 @@ void CMutations::FilterMutations(CMutations& filteredMutations, vector<CMutation
                 pOtherMutations->mutations.push_back(m);
             }
     }
+    printf("Done\n");
 }
 
 void CMutations::SaveToFile(string path)
 {
     ofstream f;
-    f.open(path);
+    f.open(path.c_str());
     int i;
     
     for(i=0;i<mutations.size();i++)

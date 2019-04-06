@@ -13,6 +13,7 @@
 #include <fstream>
 #include "options.h"
 #include <ctime>
+#include <cstring>
 
 CResultsKey::CResultsKey(string cancer_, string sample_, int bin_)
 {
@@ -59,10 +60,10 @@ void CAPOBEC::ClassifyMutations(CHumanGenome* phuman_)
 
     // Filter APOBEC mutations
     vector<CMutationSignature> signatures;
-    signatures.emplace_back("TCA",2,"T");
-    signatures.emplace_back("TCT",2,"T");
-    signatures.emplace_back("TCA",2,"G");
-    signatures.emplace_back("TCT",2,"G");
+    signatures.push_back(CMutationSignature("TCA",2,"T"));
+    signatures.push_back(CMutationSignature("TCT",2,"T"));
+    signatures.push_back(CMutationSignature("TCA",2,"G"));
+    signatures.push_back(CMutationSignature("TCT",2,"G"));
     
     set<string> cancers;
     set<string> samples;
@@ -114,29 +115,29 @@ void CAPOBEC::AnalysisReplicationTiming(CMutations& muts, string resultsFilename
     int res;
     
     vector<CRTBin> binsIMR90, binsNHEK, binsMCF7;
-    binsIMR90.emplace_back(1,-100,13.0766);
-    binsIMR90.emplace_back(2,13.0766,28.3851);
-    binsIMR90.emplace_back(3,28.3851,40.2474);
-    binsIMR90.emplace_back(4,40.2474,52.0254);
-    binsIMR90.emplace_back(5,52.0254,64.7194);
-    binsIMR90.emplace_back(6,64.7194,75.0635);
-    binsIMR90.emplace_back(7,75.0635,90.1735);
+    binsIMR90.push_back(CRTBin(1,-100,13.0766));
+    binsIMR90.push_back(CRTBin(2,13.0766,28.3851));
+    binsIMR90.push_back(CRTBin(3,28.3851,40.2474));
+    binsIMR90.push_back(CRTBin(4,40.2474,52.0254));
+    binsIMR90.push_back(CRTBin(5,52.0254,64.7194));
+    binsIMR90.push_back(CRTBin(6,64.7194,75.0635));
+    binsIMR90.push_back(CRTBin(7,75.0635,90.1735));
     
-    binsMCF7.emplace_back(1,-100,19.8872);
-    binsMCF7.emplace_back(2,19.8872,30.5993);
-    binsMCF7.emplace_back(3,30.5993,40.0364);
-    binsMCF7.emplace_back(4,40.0364,50.556);
-    binsMCF7.emplace_back(5,50.556,60.3904);
-    binsMCF7.emplace_back(6,60.3904,68.9953);
-    binsMCF7.emplace_back(7,68.9953,86.4342);
+    binsMCF7.push_back(CRTBin(1,-100,19.8872));
+    binsMCF7.push_back(CRTBin(2,19.8872,30.5993));
+    binsMCF7.push_back(CRTBin(3,30.5993,40.0364));
+    binsMCF7.push_back(CRTBin(4,40.0364,50.556));
+    binsMCF7.push_back(CRTBin(5,50.556,60.3904));
+    binsMCF7.push_back(CRTBin(6,60.3904,68.9953));
+    binsMCF7.push_back(CRTBin(7,68.9953,86.4342));
 
-    binsNHEK.emplace_back(1,-100,22.622);
-    binsNHEK.emplace_back(2,-100,32.1929);
-    binsNHEK.emplace_back(3,-100,41.1202);
-    binsNHEK.emplace_back(4,-100,50.9531);
-    binsNHEK.emplace_back(5,-100,59.6393);
-    binsNHEK.emplace_back(6,-100,67.2079);
-    binsNHEK.emplace_back(7,-100,80.7682);
+    binsNHEK.push_back(CRTBin(1,-100,22.622));
+    binsNHEK.push_back(CRTBin(2,-100,32.1929));
+    binsNHEK.push_back(CRTBin(3,-100,41.1202));
+    binsNHEK.push_back(CRTBin(4,-100,50.9531));
+    binsNHEK.push_back(CRTBin(5,-100,59.6393));
+    binsNHEK.push_back(CRTBin(6,-100,67.2079));
+    binsNHEK.push_back(CRTBin(7,-100,80.7682));
     
     for(int i=0;i<muts.mutations.size();i++)
     {
@@ -286,14 +287,14 @@ void CAPOBEC::AnalysisExpression(CMutations& muts, string resultsFilename)
     
     vector<CExpressionBin> expBins;
     
-    expBins.emplace_back(0,-9999999,0);
-    expBins.emplace_back(1,0,25);
-    expBins.emplace_back(2,25,100);
-    expBins.emplace_back(3,100,300);
-    expBins.emplace_back(4,300,550);
-    expBins.emplace_back(5,550,1000);
-    expBins.emplace_back(6,1000,2000);
-    expBins.emplace_back(7,2000,99999999999);
+    expBins.push_back(CExpressionBin(0,-9999999,0));
+    expBins.push_back(CExpressionBin(1,0,25));
+    expBins.push_back(CExpressionBin(2,25,100));
+    expBins.push_back(CExpressionBin(3,100,300));
+    expBins.push_back(CExpressionBin(4,300,550));
+    expBins.push_back(CExpressionBin(5,550,1000));
+    expBins.push_back(CExpressionBin(6,1000,2000));
+    expBins.push_back(CExpressionBin(7,2000,99999999999));
     
     
     map<CResultsKey, CResultsValue> results;
@@ -349,29 +350,29 @@ void CAPOBEC::AnalysisExpression(CMutations& muts, string resultsFilename)
 void CAPOBEC::CalculateTargetsinRTBins(CHumanGenome* phuman)
 {
     vector<CRTBin> binsIMR90, binsNHEK, binsMCF7;
-    binsIMR90.emplace_back(1,-100,13.0766);
-    binsIMR90.emplace_back(2,13.0766,28.3851);
-    binsIMR90.emplace_back(3,28.3851,40.2474);
-    binsIMR90.emplace_back(4,40.2474,52.0254);
-    binsIMR90.emplace_back(5,52.0254,64.7194);
-    binsIMR90.emplace_back(6,64.7194,75.0635);
-    binsIMR90.emplace_back(7,75.0635,90.1735);
+    binsIMR90.push_back(CRTBin(1,-100,13.0766));
+    binsIMR90.push_back(CRTBin(2,13.0766,28.3851));
+    binsIMR90.push_back(CRTBin(3,28.3851,40.2474));
+    binsIMR90.push_back(CRTBin(4,40.2474,52.0254));
+    binsIMR90.push_back(CRTBin(5,52.0254,64.7194));
+    binsIMR90.push_back(CRTBin(6,64.7194,75.0635));
+    binsIMR90.push_back(CRTBin(7,75.0635,90.1735));
     
-    binsMCF7.emplace_back(1,-100,19.8872);
-    binsMCF7.emplace_back(2,19.8872,30.5993);
-    binsMCF7.emplace_back(3,30.5993,40.0364);
-    binsMCF7.emplace_back(4,40.0364,50.556);
-    binsMCF7.emplace_back(5,50.556,60.3904);
-    binsMCF7.emplace_back(6,60.3904,68.9953);
-    binsMCF7.emplace_back(7,68.9953,86.4342);
+    binsMCF7.push_back(CRTBin(1,-100,19.8872));
+    binsMCF7.push_back(CRTBin(2,19.8872,30.5993));
+    binsMCF7.push_back(CRTBin(3,30.5993,40.0364));
+    binsMCF7.push_back(CRTBin(4,40.0364,50.556));
+    binsMCF7.push_back(CRTBin(5,50.556,60.3904));
+    binsMCF7.push_back(CRTBin(6,60.3904,68.9953));
+    binsMCF7.push_back(CRTBin(7,68.9953,86.4342));
     
-    binsNHEK.emplace_back(1,-100,22.622);
-    binsNHEK.emplace_back(2,-100,32.1929);
-    binsNHEK.emplace_back(3,-100,41.1202);
-    binsNHEK.emplace_back(4,-100,50.9531);
-    binsNHEK.emplace_back(5,-100,59.6393);
-    binsNHEK.emplace_back(6,-100,67.2079);
-    binsNHEK.emplace_back(7,-100,80.7682);
+    binsNHEK.push_back(CRTBin(1,-100,22.622));
+    binsNHEK.push_back(CRTBin(2,-100,32.1929));
+    binsNHEK.push_back(CRTBin(3,-100,41.1202));
+    binsNHEK.push_back(CRTBin(4,-100,50.9531));
+    binsNHEK.push_back(CRTBin(5,-100,59.6393));
+    binsNHEK.push_back(CRTBin(6,-100,67.2079));
+    binsNHEK.push_back(CRTBin(7,-100,80.7682));
     
     string path;
     CReplicationTiming rtIMR90;
@@ -414,7 +415,7 @@ set<CCancerSample> CAPOBEC::LoadCancerSamples(string path)
     string line;
     int chrNum;
     
-    ifstream f(path);
+    ifstream f(path.c_str());
     if (!f.is_open())
         return(ret);
 
@@ -425,7 +426,7 @@ set<CCancerSample> CAPOBEC::LoadCancerSamples(string path)
         if (line.length() != 0)
         {
             flds = split(line);
-            ret.emplace(flds[0],flds[1]);
+            ret.insert(CCancerSample(flds[0],flds[1]));
         }
     }
     
@@ -440,6 +441,8 @@ void CAPOBEC::CalculateTargetsinExpressionBins(CHumanGenome* phuman, string canc
     int bin;
     int i;
     
+    //////// Load data
+    
     CHumanGenes genes;
     genes.LoadGenes(string(HUMAN_GENES));
     genes.PrepareForSearch();
@@ -447,11 +450,11 @@ void CAPOBEC::CalculateTargetsinExpressionBins(CHumanGenome* phuman, string canc
     CExpression blca,brca,hnsc,luad,lusc;
     map<string,CExpression*> expmap;
     
-    blca.LoadExpression(string(HUMAN_GENES)+"/unpivot_expression_BLCA.txt");
-    brca.LoadExpression(string(HUMAN_GENES)+"/unpivot_expression_BRCA.txt");
-    hnsc.LoadExpression(string(HUMAN_GENES)+"/unpivot_expression_HNSC.txt");
-    luad.LoadExpression(string(HUMAN_GENES)+"/unpivot_expression_LUAD.txt");
-    lusc.LoadExpression(string(HUMAN_GENES)+"/unpivot_expression_LUSC.txt");
+    blca.LoadExpression(string(EXPRESSION_FOLDER)+"/unpivot_expression_BLCA.txt");
+    brca.LoadExpression(string(EXPRESSION_FOLDER)+"/unpivot_expression_BRCA.txt");
+    hnsc.LoadExpression(string(EXPRESSION_FOLDER)+"/unpivot_expression_HNSC.txt");
+    luad.LoadExpression(string(EXPRESSION_FOLDER)+"/unpivot_expression_LUAD.txt");
+    lusc.LoadExpression(string(EXPRESSION_FOLDER)+"/unpivot_expression_LUSC.txt");
     expmap["BLCA"] = &blca;
     expmap["BRCA"] = &brca;
     expmap["HNSC"] = &hnsc;
@@ -460,14 +463,14 @@ void CAPOBEC::CalculateTargetsinExpressionBins(CHumanGenome* phuman, string canc
     
     vector<CExpressionBin> expBins;
     
-    expBins.emplace_back(0,-9999999,0);
-    expBins.emplace_back(1,0,25);
-    expBins.emplace_back(2,25,100);
-    expBins.emplace_back(3,100,300);
-    expBins.emplace_back(4,300,550);
-    expBins.emplace_back(5,550,1000);
-    expBins.emplace_back(6,1000,2000);
-    expBins.emplace_back(7,2000,99999999999);
+    expBins.push_back(CExpressionBin(0,-9999999,0));
+    expBins.push_back(CExpressionBin(1,0,25));
+    expBins.push_back(CExpressionBin(2,25,100));
+    expBins.push_back(CExpressionBin(3,100,300));
+    expBins.push_back(CExpressionBin(4,300,550));
+    expBins.push_back(CExpressionBin(5,550,1000));
+    expBins.push_back(CExpressionBin(6,1000,2000));
+    expBins.push_back(CExpressionBin(7,2000,99999999999));
 
     set<string> motifs;
     motifs.insert("TCA");
@@ -496,13 +499,15 @@ void CAPOBEC::CalculateTargetsinExpressionBins(CHumanGenome* phuman, string canc
         i++;
     }
     
+    ///// Processing
+    
     map<CResultsKey, CResultsValue> results;
     map<CResultsKey, CResultsValue>::iterator it;
-    
     
     CDNAPos pos = CDNAPos(0,0);
     int includeCurPos=1;
     set<CCancerSample>::iterator s;
+    set<CCancerSample> cancerSample;
     int strand;
     int strandInconsistence;
     CResultsValue rv;
@@ -510,7 +515,12 @@ void CAPOBEC::CalculateTargetsinExpressionBins(CHumanGenome* phuman, string canc
     
     clock_t time,time1=0,time2=0, time3=0;
     
-    for(s=apobecMuts.cancerSample.begin();s!=apobecMuts.cancerSample.end();s++)
+    if(cancer == "" && sample == "")
+        cancerSample = apobecMuts.cancerSample;
+    else
+        cancerSample.insert(CCancerSample(cancer,sample));
+    
+    for(s=cancerSample.begin();s!=cancerSample.end();s++)
         for(bin=-2;bin<8;bin++)
         {
             rv = CResultsValue(0,0,0,0,0);
@@ -522,13 +532,13 @@ void CAPOBEC::CalculateTargetsinExpressionBins(CHumanGenome* phuman, string canc
     motifsnum = motifsall.size();
     unsigned long cnt[10];
     
-    set<CCancerSample> doneCancerSamples;
-    doneCancerSamples = LoadCancerSamples(string(RESULTS_FOLDER)+"/TCW_in_EXPbins.txt");
-    for(s=apobecMuts.cancerSample.begin();s!=apobecMuts.cancerSample.end();s++)
+    //set<CCancerSample> doneCancerSamples;
+    //doneCancerSamples = LoadCancerSamples(string(RESULTS_FOLDER)+"/TCW_in_EXPbins.txt");
+    for(s=cancerSample.begin();s!=cancerSample.end();s++)
     {
         cout << "Cancer:" << (*s).cancer << ", Sample:" << (*s).sample << '\n';
-        if(doneCancerSamples.find((*s)) != doneCancerSamples.end())
-            continue;
+        //if(doneCancerSamples.find((*s)) != doneCancerSamples.end())
+        //    continue;
         for(i=0;i<10;i++)
             cnt[i] = 0;
         time = clock();
@@ -554,7 +564,10 @@ void CAPOBEC::CalculateTargetsinExpressionBins(CHumanGenome* phuman, string canc
         // Save current results to file
         ofstream f;
         string path;
-        path = string(RESULTS_FOLDER)+"/TCW_in_EXPbins.txt";
+        if(cancer == "" && sample == "")
+            path = string(RESULTS_FOLDER)+"/TCW_in_EXPbins.txt";
+        else
+            path = string(RESULTS_FOLDER)+"/TCW_in_EXPbins_"+cancer+"_"+sample+".txt";
         f.open(path.c_str());
         
         f << "Cancer" << '\t' << "Sample" << '\t' << "ExpressionBin" << '\t' <<  "TargetCnt" << '\n';
@@ -577,46 +590,6 @@ void CAPOBEC::CalculateAPOBECEnrichment(CHumanGenome* phuman_)
     set<string> motifs;
     ofstream f;
     string path;
-    
-    class CMapKey {
-    public:
-        string cancer;
-        string sample;
-        CMapKey(string cancer_, string sample_)
-        {
-            cancer = cancer_;
-            sample = sample_;
-        }
-        bool operator< (const CMapKey &right) const
-        {
-            if (cancer < right.cancer)
-                return true;
-            else if (cancer > right.cancer)
-                return false;
-            else
-            {
-                if (sample < right.sample)
-                    return true;
-                else 
-                    return false;
-            }
-        }
-    };
-    
-    class CMapValue {
-    public:
-        unsigned long APOBECmutsCnt;
-        unsigned long cytosineMutsCnt;
-        double enrichment;
-        double enrichmentExcludeTCW;
-        CMapValue(unsigned long APOBECmutsCnt_, unsigned long cytosineMutsCnt_, double enrichment_, double enrichmentExcludeTCW_)
-        {
-            APOBECmutsCnt = APOBECmutsCnt_;
-            cytosineMutsCnt = cytosineMutsCnt_;
-            enrichment = enrichment_;
-            enrichmentExcludeTCW = enrichmentExcludeTCW_;
-        }
-    };
     
     if(phuman_)
         phuman = phuman_;
