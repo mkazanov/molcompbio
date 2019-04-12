@@ -16,6 +16,7 @@
 #define RT_NULL 999999
 #define RT_NULLBIN_NOVALUE -1
 #define RT_NULLBIN_NOBIN -2
+#define RT_NULLBIN_CNT  2
 #define CHR_NULL -1
 #define STRAND_LEADING 1
 #define STRAND_LAGGING 0

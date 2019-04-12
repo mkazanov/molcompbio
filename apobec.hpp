@@ -23,8 +23,9 @@ class CResultsKey {
 public:
     string cancer;
     string sample;
-    int bin;
-    CResultsKey(string cancer_, string sample_, int bin_);
+    int rtbin;
+    int expbin;
+    CResultsKey(string cancer_, string sample_, int rtbin_, int expbin_);
     bool operator< (const CResultsKey &right) const
     {
         if (cancer < right.cancer)
@@ -39,10 +40,19 @@ public:
                 return false;
             else
             {
-                if(bin < right.bin)
+                if(rtbin < right.rtbin)
                     return true;
-                else
+                else if (rtbin > right.rtbin)
                     return false;
+                else
+                {
+                    if (expbin < right.expbin)
+                        return true;
+                    else if (expbin > right.expbin)
+                        return false;
+                    else
+                        return false;
+                }
             }
         }
     }
@@ -60,7 +70,8 @@ public:
     unsigned long minusStrandAll;
     
     CResultsValue(unsigned long mutCnt_, unsigned long leadingCnt_, unsigned long laggingCnt_);
-    CResultsValue(unsigned long mutCnt_, unsigned long plusStrandConsistent_, unsigned long minusStrandConsistent_, unsigned long plusStrandAll, unsigned long minusStrandAll);
+    CResultsValue(unsigned long mutCnt_, unsigned long plusStrandConsistent_, unsigned long minusStrandConsistent_, unsigned long plusStrandAll_, unsigned long minusStrandAll_);
+    CResultsValue(unsigned long mutCnt_, unsigned long leadingCnt_, unsigned long laggingCnt_,unsigned long plusStrandConsistent_, unsigned long minusStrandConsistent_, unsigned long plusStrandAll_, unsigned long minusStrandAll_);
     CResultsValue(){};
 };
 
@@ -109,11 +120,14 @@ public:
     CMutations apobecMuts;
     CMutations otherMuts;
     void ClassifyMutations(CHumanGenome* phuman_ = NULL);
-    void AnalysisReplicationTiming(CMutations& muts, string resultsFilename);
-    void AnalysisExpression(CMutations& muts, string resultsFilename);
+    void AnalyzeReplicationTiming(CMutations& muts, string resultsFilename);
+    void AnalyzeExpression(CMutations& muts, string resultsFilename);
+    void AnalyzeRTExpression(CMutations& muts, string resultsFilename);
     int GetExpressionBin(string sample, string chr, unsigned long pos, char isForwardMut, CHumanGenes& genes, CExpression& exp, vector<CExpressionBin>& expBins, int& strand, int& strandInconsistence);
     void CalculateTargetsinRTBins(CHumanGenome* phuman_ = NULL);
-    void CalculateTargetsinExpressionBins(CHumanGenome* phuman = NULL, string cancer = "", string sample = "");
+    void CalculateTargetsinExpressionBins(string outFilePrefix, CHumanGenome* phuman = NULL, string cancer = "", string sample = "", int isAPOBECmotif = 1);
+    void CalculateTargetsinRTexpressionBins(string outFilePrefix, CHumanGenome* phuman = NULL, string cancer = "", string sample = "", int isAPOBECmotif = 1);
+    
     void CalculateAPOBECEnrichment(CHumanGenome* phuman_ = NULL);
     set<CCancerSample> LoadCancerSamples(string path);
 };

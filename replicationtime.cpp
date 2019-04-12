@@ -153,9 +153,14 @@ void CReplicationTiming::ReplicationStrand()
     
     for(it=RTs.begin();it!=RTs.end();++it)
     {
+        //cout << it->RTvalue << '\n';
         if(it != RTs.begin())
-            previt = it--;
-        nextit = it++;
+        {
+            previt = it;
+            previt--;
+        }
+        nextit = it;
+        nextit++;
         if(it == RTs.begin() || previt->chrNum != it->chrNum || nextit->chrNum != it->chrNum)
             it->isForward = -1;
         else

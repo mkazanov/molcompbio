@@ -12,6 +12,13 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <set>
+#include "ghuman.hpp"
+#include "genehuman.hpp"
+
+#define EXP_NULLBIN_NOTINGENES  -2
+#define EXP_NULLBIN_NOEXPDATA   -1
+#define EXP_NULLBIN_CNT 2
 
 using namespace std;
 
@@ -53,6 +60,8 @@ public:
     map<CExpressionKey, double> data;
     void LoadExpression(string path);
     int GetExpression(unsigned long geneId, string sample, double& expressionValue);
-    int GetExpressionBin(double expValue, vector<CExpressionBin> bins);
+    int GetExpressionBinByValue(double expValue, vector<CExpressionBin> bins);
+    int GetExpressionBin(string sample, string chr, unsigned long pos, char isForwardMut, CHumanGenes& genes, vector<CExpressionBin>& expBins, int& strand, int& strandInconsistence);
+    map<int,unsigned long> CalculateMotifsExpressionBins(vector<CExpressionBin> expBins, CHumanGenes& genes, set<string> motifs, string sample, CHumanGenome* phuman);
 };
 #endif /* expression_hpp */
