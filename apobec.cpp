@@ -135,37 +135,29 @@ void CAPOBEC::AnalyzeReplicationTiming(CMutations& muts, string resultsFilename)
     int res;
     
     vector<CRTBin> binsIMR90, binsNHEK, binsMCF7;
-    binsIMR90.push_back(CRTBin(0,-100,13.0766));
-    binsIMR90.push_back(CRTBin(1,13.0766,28.3851));
-    binsIMR90.push_back(CRTBin(2,28.3851,40.2474));
-    binsIMR90.push_back(CRTBin(3,40.2474,52.0254));
-    binsIMR90.push_back(CRTBin(4,52.0254,64.7194));
-    binsIMR90.push_back(CRTBin(5,64.7194,75.0635));
-    binsIMR90.push_back(CRTBin(6,75.0635,90.1735));
+    rtIMR90.bins.push_back(CRTBin(0,-100,13.0766));
+    rtIMR90.bins.push_back(CRTBin(1,13.0766,28.3851));
+    rtIMR90.bins.push_back(CRTBin(2,28.3851,40.2474));
+    rtIMR90.bins.push_back(CRTBin(3,40.2474,52.0254));
+    rtIMR90.bins.push_back(CRTBin(4,52.0254,64.7194));
+    rtIMR90.bins.push_back(CRTBin(5,64.7194,75.0635));
+    rtIMR90.bins.push_back(CRTBin(6,75.0635,90.1735));
     
-    binsMCF7.push_back(CRTBin(0,-100,19.8872));
-    binsMCF7.push_back(CRTBin(1,19.8872,30.5993));
-    binsMCF7.push_back(CRTBin(2,30.5993,40.0364));
-    binsMCF7.push_back(CRTBin(3,40.0364,50.556));
-    binsMCF7.push_back(CRTBin(4,50.556,60.3904));
-    binsMCF7.push_back(CRTBin(5,60.3904,68.9953));
-    binsMCF7.push_back(CRTBin(6,68.9953,86.4342));
+    rtMCF7.bins.push_back(CRTBin(0,-100,19.8872));
+    rtMCF7.bins.push_back(CRTBin(1,19.8872,30.5993));
+    rtMCF7.bins.push_back(CRTBin(2,30.5993,40.0364));
+    rtMCF7.bins.push_back(CRTBin(3,40.0364,50.556));
+    rtMCF7.bins.push_back(CRTBin(4,50.556,60.3904));
+    rtMCF7.bins.push_back(CRTBin(5,60.3904,68.9953));
+    rtMCF7.bins.push_back(CRTBin(6,68.9953,86.4342));
 
-    binsNHEK.push_back(CRTBin(0,-100,22.622));
-    binsNHEK.push_back(CRTBin(1,-100,32.1929));
-    binsNHEK.push_back(CRTBin(2,-100,41.1202));
-    binsNHEK.push_back(CRTBin(3,-100,50.9531));
-    binsNHEK.push_back(CRTBin(4,-100,59.6393));
-    binsNHEK.push_back(CRTBin(5,-100,67.2079));
-    binsNHEK.push_back(CRTBin(6,-100,80.7682));
-    
-    map<string,vector<CRTBin>*> rtbinsmap;
-    rtbinsmap["BLCA"] = &binsNHEK;
-    rtbinsmap["BRCA"] = &binsMCF7;
-    rtbinsmap["HNSC"] = &binsNHEK;
-    rtbinsmap["LUAD"] = &binsIMR90;
-    rtbinsmap["LUSC"] = &binsIMR90;
-    
+    rtNHEK.bins.push_back(CRTBin(0,-100,22.622));
+    rtNHEK.bins.push_back(CRTBin(1,-100,32.1929));
+    rtNHEK.bins.push_back(CRTBin(2,-100,41.1202));
+    rtNHEK.bins.push_back(CRTBin(3,-100,50.9531));
+    rtNHEK.bins.push_back(CRTBin(4,-100,59.6393));
+    rtNHEK.bins.push_back(CRTBin(5,-100,67.2079));
+    rtNHEK.bins.push_back(CRTBin(6,-100,80.7682));
     
     for(int i=0;i<muts.mutations.size();i++)
     {
@@ -173,7 +165,7 @@ void CAPOBEC::AnalyzeReplicationTiming(CMutations& muts, string resultsFilename)
                 
         res = rtmap[string(mut.cancer)]->GetRT(CHumanGenome::GetChrNum(string(mut.chr)), mut.pos, rt);
         if(res)
-            bin = rtmap[string(mut.cancer)]->GetRTBin(rt.RTvalue, (*rtbinsmap[string(mut.cancer)]));
+            bin = rtmap[string(mut.cancer)]->GetRTBin(rt.RTvalue, (rtmap[string(mut.cancer)]->bins));
         else
             bin = RT_NULLBIN_NOVALUE;
 
@@ -304,31 +296,6 @@ void CAPOBEC::AnalyzeExpression(CMutations& muts, string resultsFilename)
 
 void CAPOBEC::CalculateTargetsinRTBins(CHumanGenome* phuman)
 {
-    vector<CRTBin> binsIMR90, binsNHEK, binsMCF7;
-    binsIMR90.push_back(CRTBin(1,-100,13.0766));
-    binsIMR90.push_back(CRTBin(2,13.0766,28.3851));
-    binsIMR90.push_back(CRTBin(3,28.3851,40.2474));
-    binsIMR90.push_back(CRTBin(4,40.2474,52.0254));
-    binsIMR90.push_back(CRTBin(5,52.0254,64.7194));
-    binsIMR90.push_back(CRTBin(6,64.7194,75.0635));
-    binsIMR90.push_back(CRTBin(7,75.0635,90.1735));
-    
-    binsMCF7.push_back(CRTBin(1,-100,19.8872));
-    binsMCF7.push_back(CRTBin(2,19.8872,30.5993));
-    binsMCF7.push_back(CRTBin(3,30.5993,40.0364));
-    binsMCF7.push_back(CRTBin(4,40.0364,50.556));
-    binsMCF7.push_back(CRTBin(5,50.556,60.3904));
-    binsMCF7.push_back(CRTBin(6,60.3904,68.9953));
-    binsMCF7.push_back(CRTBin(7,68.9953,86.4342));
-    
-    binsNHEK.push_back(CRTBin(1,-100,22.622));
-    binsNHEK.push_back(CRTBin(2,-100,32.1929));
-    binsNHEK.push_back(CRTBin(3,-100,41.1202));
-    binsNHEK.push_back(CRTBin(4,-100,50.9531));
-    binsNHEK.push_back(CRTBin(5,-100,59.6393));
-    binsNHEK.push_back(CRTBin(6,-100,67.2079));
-    binsNHEK.push_back(CRTBin(7,-100,80.7682));
-    
     string path;
     CReplicationTiming rtIMR90;
     CReplicationTiming rtMCF7;
@@ -340,26 +307,50 @@ void CAPOBEC::CalculateTargetsinRTBins(CHumanGenome* phuman)
     path = string(REPLICATION_TIMING_FOLDER)+string("/wgEncodeUwRepliSeqNhekWaveSignalRep1.mybed");
     rtNHEK.LoadReplicationTiming(path.c_str(), 0);
 
+    rtIMR90.bins.push_back(CRTBin(1,-100,13.0766));
+    rtIMR90.bins.push_back(CRTBin(2,13.0766,28.3851));
+    rtIMR90.bins.push_back(CRTBin(3,28.3851,40.2474));
+    rtIMR90.bins.push_back(CRTBin(4,40.2474,52.0254));
+    rtIMR90.bins.push_back(CRTBin(5,52.0254,64.7194));
+    rtIMR90.bins.push_back(CRTBin(6,64.7194,75.0635));
+    rtIMR90.bins.push_back(CRTBin(7,75.0635,90.1735));
+    
+    rtMCF7.bins.push_back(CRTBin(1,-100,19.8872));
+    rtMCF7.bins.push_back(CRTBin(2,19.8872,30.5993));
+    rtMCF7.bins.push_back(CRTBin(3,30.5993,40.0364));
+    rtMCF7.bins.push_back(CRTBin(4,40.0364,50.556));
+    rtMCF7.bins.push_back(CRTBin(5,50.556,60.3904));
+    rtMCF7.bins.push_back(CRTBin(6,60.3904,68.9953));
+    rtMCF7.bins.push_back(CRTBin(7,68.9953,86.4342));
+    
+    rtNHEK.bins.push_back(CRTBin(1,-100,22.622));
+    rtNHEK.bins.push_back(CRTBin(2,-100,32.1929));
+    rtNHEK.bins.push_back(CRTBin(3,-100,41.1202));
+    rtNHEK.bins.push_back(CRTBin(4,-100,50.9531));
+    rtNHEK.bins.push_back(CRTBin(5,-100,59.6393));
+    rtNHEK.bins.push_back(CRTBin(6,-100,67.2079));
+    rtNHEK.bins.push_back(CRTBin(7,-100,80.7682));
+    
     set<string> motifs;
     motifs.insert("TCA");
     motifs.insert("TCT");
  
     path = string(RESULTS_FOLDER)+string("/TCW_in_RTbins_IMR90.txt");
-    rtIMR90.CalculateMotifinRTBins(binsIMR90, motifs, path.c_str(), phuman);
+    rtIMR90.CalculateMotifinRTBins(motifs, path.c_str(), phuman);
     path = string(RESULTS_FOLDER)+string("/TCW_in_RTbins_MCF7.txt");
-    rtMCF7.CalculateMotifinRTBins(binsMCF7, motifs, path.c_str(), phuman);
+    rtMCF7.CalculateMotifinRTBins(motifs, path.c_str(), phuman);
     path = string(RESULTS_FOLDER)+string("/TCW_in_RTbins_NHEK.txt");
-    rtNHEK.CalculateMotifinRTBins(binsNHEK, motifs, path.c_str(), phuman);
+    rtNHEK.CalculateMotifinRTBins(motifs, path.c_str(), phuman);
 
     motifs.clear();
     motifs.insert("X");
     
     path = string(RESULTS_FOLDER)+string("/ALL_in_RTbins_IMR90.txt");
-    rtIMR90.CalculateMotifinRTBins(binsIMR90, motifs, path.c_str(), phuman);
+    rtIMR90.CalculateMotifinRTBins(motifs, path.c_str(), phuman);
     path = string(RESULTS_FOLDER)+string("/ALL_in_RTbins_MCF7.txt");
-    rtMCF7.CalculateMotifinRTBins(binsMCF7, motifs, path.c_str(), phuman);
+    rtMCF7.CalculateMotifinRTBins(motifs, path.c_str(), phuman);
     path = string(RESULTS_FOLDER)+string("/ALL_in_RTbins_NHEK.txt");
-    rtNHEK.CalculateMotifinRTBins(binsNHEK, motifs, path.c_str(), phuman);
+    rtNHEK.CalculateMotifinRTBins(motifs, path.c_str(), phuman);
 
 }
 
@@ -756,40 +747,6 @@ void CAPOBEC::CalculateTargetsinRTexpressionBins(string outFilePrefix, CHumanGen
     
     int rtBinsSize;
     
-    vector<CRTBin> binsIMR90, binsNHEK, binsMCF7;
-    binsIMR90.push_back(CRTBin(0,-100,13.0766));
-    binsIMR90.push_back(CRTBin(1,13.0766,28.3851));
-    binsIMR90.push_back(CRTBin(2,28.3851,40.2474));
-    binsIMR90.push_back(CRTBin(3,40.2474,52.0254));
-    binsIMR90.push_back(CRTBin(4,52.0254,64.7194));
-    binsIMR90.push_back(CRTBin(5,64.7194,75.0635));
-    binsIMR90.push_back(CRTBin(6,75.0635,90.1735));
-    
-    binsMCF7.push_back(CRTBin(0,-100,19.8872));
-    binsMCF7.push_back(CRTBin(1,19.8872,30.5993));
-    binsMCF7.push_back(CRTBin(2,30.5993,40.0364));
-    binsMCF7.push_back(CRTBin(3,40.0364,50.556));
-    binsMCF7.push_back(CRTBin(4,50.556,60.3904));
-    binsMCF7.push_back(CRTBin(5,60.3904,68.9953));
-    binsMCF7.push_back(CRTBin(6,68.9953,86.4342));
-    
-    binsNHEK.push_back(CRTBin(0,-100,22.622));
-    binsNHEK.push_back(CRTBin(1,-100,32.1929));
-    binsNHEK.push_back(CRTBin(2,-100,41.1202));
-    binsNHEK.push_back(CRTBin(3,-100,50.9531));
-    binsNHEK.push_back(CRTBin(4,-100,59.6393));
-    binsNHEK.push_back(CRTBin(5,-100,67.2079));
-    binsNHEK.push_back(CRTBin(6,-100,80.7682));
-    
-    rtBinsSize = (int)binsIMR90.size();
-    
-    map<string,vector<CRTBin>*> rtbinsmap;
-    rtbinsmap["BLCA"] = &binsNHEK;
-    rtbinsmap["BRCA"] = &binsMCF7;
-    rtbinsmap["HNSC"] = &binsNHEK;
-    rtbinsmap["LUAD"] = &binsIMR90;
-    rtbinsmap["LUSC"] = &binsIMR90;
-    
     string path;
     CReplicationTiming rtIMR90;
     CReplicationTiming rtMCF7;
@@ -800,6 +757,33 @@ void CAPOBEC::CalculateTargetsinRTexpressionBins(string outFilePrefix, CHumanGen
     rtMCF7.LoadReplicationTiming(path.c_str(), 0);
     path = string(REPLICATION_TIMING_FOLDER)+string("/wgEncodeUwRepliSeqNhekWaveSignalRep1.mybed");
     rtNHEK.LoadReplicationTiming(path.c_str(), 0);
+    
+    vector<CRTBin> binsIMR90, binsNHEK, binsMCF7;
+    rtIMR90.bins.push_back(CRTBin(0,-100,13.0766));
+    rtIMR90.bins.push_back(CRTBin(1,13.0766,28.3851));
+    rtIMR90.bins.push_back(CRTBin(2,28.3851,40.2474));
+    rtIMR90.bins.push_back(CRTBin(3,40.2474,52.0254));
+    rtIMR90.bins.push_back(CRTBin(4,52.0254,64.7194));
+    rtIMR90.bins.push_back(CRTBin(5,64.7194,75.0635));
+    rtIMR90.bins.push_back(CRTBin(6,75.0635,90.1735));
+    
+    rtMCF7.bins.push_back(CRTBin(0,-100,19.8872));
+    rtMCF7.bins.push_back(CRTBin(1,19.8872,30.5993));
+    rtMCF7.bins.push_back(CRTBin(2,30.5993,40.0364));
+    rtMCF7.bins.push_back(CRTBin(3,40.0364,50.556));
+    rtMCF7.bins.push_back(CRTBin(4,50.556,60.3904));
+    rtMCF7.bins.push_back(CRTBin(5,60.3904,68.9953));
+    rtMCF7.bins.push_back(CRTBin(6,68.9953,86.4342));
+    
+    rtNHEK.bins.push_back(CRTBin(0,-100,22.622));
+    rtNHEK.bins.push_back(CRTBin(1,-100,32.1929));
+    rtNHEK.bins.push_back(CRTBin(2,-100,41.1202));
+    rtNHEK.bins.push_back(CRTBin(3,-100,50.9531));
+    rtNHEK.bins.push_back(CRTBin(4,-100,59.6393));
+    rtNHEK.bins.push_back(CRTBin(5,-100,67.2079));
+    rtNHEK.bins.push_back(CRTBin(6,-100,80.7682));
+    
+    rtBinsSize = (int)rtIMR90.bins.size();
     
     map<string,CReplicationTiming*> rtmap;
     rtmap["BLCA"] = &rtNHEK;
@@ -864,7 +848,7 @@ void CAPOBEC::CalculateTargetsinRTexpressionBins(string outFilePrefix, CHumanGen
     {
         cout << "Cancer:" << (*s).cancer << ", Sample:" << (*s).sample << '\n';
 
-        binsResults = rtexp.CalculateMotifsRTexpressionBins((*rtmap[(*s).cancer]),(*expmap[(*s).cancer]),(*rtbinsmap[string((*s).cancer)]),expBins,genes,motifs,(*s).sample, phuman);
+        binsResults = rtexp.CalculateMotifsRTexpressionBins((*rtmap[(*s).cancer]),(*expmap[(*s).cancer]),expBins,genes,motifs,(*s).sample, phuman);
     
         for(i=(-RT_NULLBIN_CNT);i<rtBinsSize;i++)
             for(j=(-EXP_NULLBIN_CNT);j<(int)expBins.size();j++)

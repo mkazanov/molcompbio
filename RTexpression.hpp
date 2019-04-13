@@ -20,7 +20,7 @@ using namespace std;
 
 class CRTexpression{
 public:
-    map<pair<int,int>,unsigned long> CalculateMotifsRTexpressionBins(CReplicationTiming& rt, CExpression exp, vector<CRTBin> rtBins,vector<CExpressionBin> expBins, CHumanGenes& genes, set<string> motifs, string sample, CHumanGenome* phuman);
+    map<pair<int,int>,unsigned long> CalculateMotifsRTexpressionBins(CReplicationTiming& rt, CExpression exp, vector<CExpressionBin> expBins, CHumanGenes& genes, set<string> motifs, string sample, CHumanGenome* phuman);
 };
 
 #endif /* RTexpression_hpp */

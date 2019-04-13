@@ -10,7 +10,7 @@
 #include "mutsignature.hpp"
 #include "replicationtime.hpp"
 
-map<pair<int,int>,unsigned long> CRTexpression::CalculateMotifsRTexpressionBins(CReplicationTiming& rt, CExpression exp,  vector<CRTBin> rtBins,vector<CExpressionBin> expBins, CHumanGenes& genes, set<string> motifs, string sample, CHumanGenome* phuman)
+map<pair<int,int>,unsigned long> CRTexpression::CalculateMotifsRTexpressionBins(CReplicationTiming& rt, CExpression exp,  vector<CExpressionBin> expBins, CHumanGenes& genes, set<string> motifs, string sample, CHumanGenome* phuman)
 {
     int i,j;
     set<string> motifsall;
@@ -42,7 +42,7 @@ map<pair<int,int>,unsigned long> CRTexpression::CalculateMotifsRTexpressionBins(
     motifsnum = (int) motifsall.size();
     unsigned long** cnt;
     int rtBinsSize, expBinsSize;
-    rtBinsSize = (int)rtBins.size() + (int)RT_NULLBIN_CNT;
+    rtBinsSize = (int)rt.bins.size() + (int)RT_NULLBIN_CNT;
     expBinsSize = (int)expBins.size() + (int)EXP_NULLBIN_CNT;
     cnt = new unsigned long*[rtBinsSize];
     for(i=0;i<rtBinsSize;i++)
@@ -61,7 +61,7 @@ map<pair<int,int>,unsigned long> CRTexpression::CalculateMotifsRTexpressionBins(
         !pos.isNull();
         pos=msobj.NextMotif(pos,motifsarr,motifsnum,motiflen,phuman,END_GENOME))
     {
-        rtbin = rt.GetRTBin(pos.chrNum, pos.pos, rtBins);
+        rtbin = rt.GetRTBin(pos.chrNum, pos.pos, rt.bins);
         expbin = exp.GetExpressionBin(sample, phuman->chrName[pos.chrNum], pos.pos, 1, genes, expBins, strand, strandInconsistence);
         cnt[rtbin+RT_NULLBIN_CNT][expbin+EXP_NULLBIN_CNT]++;
     }

@@ -58,6 +58,7 @@ public:
 class CReplicationTiming {
     set<CReplicationTime> RTs;
 public:
+    vector<CRTBin> bins;
     void LoadReplicationTiming(string path, int isHeader);
     int GetRT(int chrNum, unsigned long pos, double& RTvalue);
     int GetRT(int chrNum, unsigned long pos, CReplicationTime& rtobj);
@@ -66,7 +67,7 @@ public:
     int GetRTBin(int chrNum, unsigned long pos, vector<CRTBin> bins);
     void ReplicationStrand();
     void SaveToFile(string path);
-    int CalculateMotifinRTBins(vector<CRTBin> bins, set<string> motifs, string OUT_PATH, CHumanGenome* phuman_ = NULL);
+    int CalculateMotifinRTBins(set<string> motifs, string OUT_PATH, CHumanGenome* phuman_ = NULL);
 };
 
 #endif /* replicationtime_hpp */

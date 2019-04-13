@@ -187,7 +187,7 @@ void CReplicationTiming::SaveToFile(string path)
     f.close();
 }
 
-int CReplicationTiming::CalculateMotifinRTBins(vector<CRTBin> bins, set<string> motifs, string OUT_PATH, CHumanGenome* phuman)
+int CReplicationTiming::CalculateMotifinRTBins(set<string> motifs, string OUT_PATH, CHumanGenome* phuman)
 {
     CMutationSignature msobj;
     int bin;

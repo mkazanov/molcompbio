@@ -77,7 +77,7 @@ void CMutations::LoadMutations(string path, int isHeader)
         if (line.length() != 0)
         {
             flds = split(line);
-            assert(flds[2] != "X2");
+
             mutations.push_back(CMutation(flds[1],flds[0],flds[2],flds[3],flds[4],flds[5]));
             i++;
         }
@@ -120,7 +120,7 @@ void CMutations::FilterMutations(CMutations& filteredMutations, vector<CMutation
             endPosShift = s.motif.length() - s.mutationPos;
             mutBase = s.motif[s.mutationPos-1];
             ss = string(m.chr);
-            assert(ss != "X2");
+
             gmotif = human.dnaSubstr(human.GetChrNum(string(m.chr)),m.pos+startPosShift,m.pos+endPosShift);
                         
             if ((m.refallele == mutBase &&
