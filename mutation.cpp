@@ -149,6 +149,9 @@ void CMutations::FilterMutations(CMutations& filteredMutations, vector<CMutation
                 pOtherMutations->mutations.push_back(m);
             }
     }
+    cout << "Signature mutations: " << filteredMutations.mutations.size() << '\n';
+    if(pOtherMutations!=NULL)
+        cout << "Other mutations: " << pOtherMutations->mutations.size() << '\n';
     printf("Done\n");
 }
 
