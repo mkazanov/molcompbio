@@ -9,6 +9,7 @@
 #include "RTexpression.hpp"
 #include "mutsignature.hpp"
 #include "replicationtime.hpp"
+#include <cstring>
 
 map<pair<int,int>,unsigned long> CRTexpression::CalculateMotifsRTexpressionBins(CReplicationTiming& rt, CExpression exp,  vector<CExpressionBin> expBins, CHumanGenes& genes, set<string> motifs, string sample, CHumanGenome* phuman)
 {

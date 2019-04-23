@@ -202,6 +202,7 @@ int CReplicationTiming::CalculateMotifinRTBins(set<string> motifs, string OUT_PA
     msobj.CheckMotifsNotEmpty(motifs);
     msobj.CheckMotifsSameLength(motifs);
     motifsall = msobj.AddcMotifs(motifs);
+    motifsnum = (int) motifsall.size();
     motiflen = (motifsall.begin())->length();
     
     // Prepare char array for copying motifs
