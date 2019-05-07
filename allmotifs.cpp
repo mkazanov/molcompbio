@@ -14,7 +14,7 @@
 #include "options.h"
 #include <iostream>
 
-void CAllMotifs::GenerateMotifsFile(string path)
+void CAllMotifs::GenerateMotifsFile(string path, int includeComplimentary)
 {
     int i,j,k;
     char nuc[4] = {'A','G','C','T'};
@@ -27,7 +27,7 @@ void CAllMotifs::GenerateMotifsFile(string path)
             for(k=0;k<4;k++)
             {
                 motif = string(1,nuc[i])+string(1,nuc[j])+string(1,nuc[k]);
-                if(motifs.find(CDNA::cDNA(motif)) != motifs.end())
+                if(motifs.find(CDNA::cDNA(motif)) != motifs.end() && includeComplimentary==0)
                     continue;
                 motifs.insert(motif);
             }
@@ -92,7 +92,7 @@ void CAllMotifs::RunAnalysis(string motif, string dirpath)
         a.otherMuts.mutations.clear();
     }
     
-    a.signatures.push_back(CMutationSignature(motif,2,"A"));
+    a.signatures.push_back(CMutationSignature(motif,2,"X"));
     a.CalculateTargetsinRTBins(dirpath+"/"+motif,&human,1);
 
     // End date/time

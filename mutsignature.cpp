@@ -125,8 +125,8 @@ unsigned long CMutationSignature::CountMotifGenome(set<string> motifs, CHumanGen
     CheckMotifsNotEmpty(motifs);
     CheckMotifsSameLength(motifs);
     motifsall = AddcMotifs(motifs);
-    motiflen = (motifsall.begin())->length();
-    motifsnum = motifsall.size();
+    motiflen = (int)(motifsall.begin())->length();
+    motifsnum = (int)motifsall.size();
     
     // Prepare char array for copying motifs
     motifsarr = new char*[motifsall.size()];

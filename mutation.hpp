@@ -21,6 +21,7 @@
 #include <set>
 #include "mutsignature.hpp"
 #include "ghuman.hpp"
+#include <fstream>
 
 using namespace std;
 
@@ -41,6 +42,30 @@ public:
     {
         cancer = cancer_;
         sample = sample_;
+    }
+    static set<CCancerSample> LoadCancerSample(string path)
+    {
+        string line;
+        vector<string> flds;
+        set<CCancerSample> ret;
+        
+        ifstream f(path.c_str());
+        if (!f.is_open())
+        {
+            printf("File not exists\n");
+            exit(1);
+        }
+        
+        while(1)
+        {
+            getline(f, line);
+            flds = split(line);
+            ret.insert(CCancerSample(flds[0],flds[1]));
+            if(f.eof())
+                break;
+        }
+        
+        return(ret);
     }
 };
 

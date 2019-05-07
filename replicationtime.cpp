@@ -76,9 +76,8 @@ void CReplicationTiming::LoadReplicationTiming(string path, int isHeader)
         }
     }
     c2 = clock();
-    printf("Replication timing %i intervals have been loaded\n", RTs.size());
+    printf("Replication timing %i intervals have been loaded\n", (int)RTs.size());
     printf("Executing time: %lu \n", c2 - c1);
-    int size = RTs.size();
 }
 
 int CReplicationTiming::GetRT(int chrNum, unsigned long pos, double& RTvalue)
@@ -227,9 +226,9 @@ int CReplicationTiming::CalculateMotifinRTBins(set<string> motifs, string OUT_PA
     int includeCurPos=1;
     int chrNum = 0;
     cout << "Chr:" << pos.chrNum << ", Pos:" << pos.pos << '\n';
-    for(pos=msobj.NextMotif(CDNAPos(0,0),motifsarr,motifsnum,motiflen,phuman,END_GENOME,includeCurPos);
+    for(pos=msobj.NextMotif(CDNAPos(0,0),motifsarr,(int)motifsnum,(int)motiflen,phuman,END_GENOME,includeCurPos);
         !pos.isNull();
-        pos=msobj.NextMotif(pos,motifsarr,motifsnum,motiflen,phuman,END_GENOME))
+        pos=msobj.NextMotif(pos,motifsarr,(int)motifsnum,(int)motiflen,phuman,END_GENOME))
     {
         bin = GetRTBin(pos.chrNum,pos.pos+(motiflen/2)+1,bins);
         results[bin]++;

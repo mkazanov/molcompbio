@@ -16,7 +16,7 @@ using namespace std;
 
 class CAllMotifs{
 public:
-    void GenerateMotifsFile(string path);
+    void GenerateMotifsFile(string path, int includeComplimentary = 0);
     void RunAnalysis(string motif, string dirpath);
 };
 

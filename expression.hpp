@@ -11,10 +11,12 @@
 
 #include <string>
 #include <map>
+#include <unordered_map>
 #include <vector>
 #include <set>
 #include "ghuman.hpp"
 #include "genehuman.hpp"
+#include <functional>
 
 #define EXP_NULLBIN_NOTINGENES  -2
 #define EXP_NULLBIN_NOEXPDATA   -1
@@ -44,6 +46,13 @@ public:
         }
         return false;
     }
+    bool operator==(const CExpressionKey &right) const
+    {
+        if (geneId == right.geneId && sample == right.sample)
+            return true;
+        else
+            return false;
+    }
 };
 
 class CExpressionBin {
@@ -57,7 +66,18 @@ public:
 class CExpression
 {
 public:
-    map<CExpressionKey, double> data;
+    CExpression(){}
+    struct hash_pair
+    {
+        size_t operator()(const CExpressionKey& k) const
+        {
+            size_t hash1 = hash<unsigned long>()(k.geneId);
+            size_t hash2 = hash<string>()(k.sample);
+            return hash1 ^ hash2;
+        }
+    };
+    
+    unordered_map<CExpressionKey, double, hash_pair> data;
     void LoadExpression(string path);
     int GetExpression(unsigned long geneId, string sample, double& expressionValue);
     int GetExpressionBinByValue(double expValue, vector<CExpressionBin> bins);

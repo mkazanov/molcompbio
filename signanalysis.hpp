@@ -21,42 +21,50 @@ using namespace std;
 
 class CResultsKey {
 public:
+    string motif;
     string cancer;
     string sample;
     int rtbin;
     int expbin;
+    CResultsKey(string motif_, string cancer_, string sample_, int rtbin_, int expbin_);
     CResultsKey(string cancer_, string sample_, int rtbin_, int expbin_);
     bool operator< (const CResultsKey &right) const
     {
-        if (cancer < right.cancer)
+        if (motif < right.motif)
             return true;
-        else if (cancer > right.cancer)
+        else if (motif > right.motif)
             return false;
         else
         {
-            if (sample < right.sample)
+            if (cancer < right.cancer)
                 return true;
-            else if (sample > right.sample)
+            else if (cancer > right.cancer)
                 return false;
             else
             {
-                if(rtbin < right.rtbin)
+                if (sample < right.sample)
                     return true;
-                else if (rtbin > right.rtbin)
+                else if (sample > right.sample)
                     return false;
                 else
                 {
-                    if (expbin < right.expbin)
+                    if(rtbin < right.rtbin)
                         return true;
-                    else if (expbin > right.expbin)
+                    else if (rtbin > right.rtbin)
                         return false;
                     else
-                        return false;
+                    {
+                        if (expbin < right.expbin)
+                            return true;
+                        else if (expbin > right.expbin)
+                            return false;
+                        else
+                            return false;
+                    }
                 }
             }
         }
     }
-
 };
 
 class CResultsValue{
@@ -128,6 +136,8 @@ public:
     void CalculateTargetsinRTBins(string motifname, CHumanGenome* phuman_ = NULL, int isSignatureMotif = 1);
     void CalculateTargetsinExpressionBins(string outFilePrefix, CHumanGenome* phuman = NULL, string cancer = "", string sample = "", int isAPOBECmotif = 1);
     void CalculateTargetsinRTexpressionBins(string outFilePrefix, CHumanGenome* phuman = NULL, string cancer = "", string sample = "", int isAPOBECmotif = 1);
+    void CalculateExpressionAllMotifs(CMutations& muts, string outFilePrefix, CHumanGenome* phuman, string cancer, string sample);
+    void CalculateTargetsinExpBinAllMotifs(string outFilePrefix, CHumanGenome* phuman, string cancer, string sample);
     
     void CalculateAPOBECEnrichment(CHumanGenome* phuman_ = NULL);
     set<CCancerSample> LoadCancerSamples(string path);

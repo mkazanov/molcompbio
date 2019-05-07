@@ -15,15 +15,25 @@
 #include <ctime>
 #include <cstring>
 #include "RTexpression.hpp"
+#include "dna.hpp"
 
-CResultsKey::CResultsKey(string cancer_, string sample_, int rtbin_, int expbin_)
+CResultsKey::CResultsKey(string motif_, string cancer_, string sample_, int rtbin_, int expbin_)
 {
+    motif = motif_;
     cancer = cancer_;
     sample = sample_;
     rtbin = rtbin_;
     expbin = expbin_;
 }
 
+CResultsKey::CResultsKey(string cancer_, string sample_, int rtbin_, int expbin_)
+{
+    motif = "X";
+    cancer = cancer_;
+    sample = sample_;
+    rtbin = rtbin_;
+    expbin = expbin_;
+}
 
 CResultsValue::CResultsValue(unsigned long mutCnt_, unsigned long leadingCnt_, unsigned long laggingCnt_)
 {
@@ -366,7 +376,6 @@ set<CCancerSample> CSignatureAnalysis::LoadCancerSamples(string path)
 {
     set<CCancerSample> ret;
     string line;
-    int chrNum;
     
     ifstream f(path.c_str());
     if (!f.is_open())
@@ -388,6 +397,208 @@ set<CCancerSample> CSignatureAnalysis::LoadCancerSamples(string path)
     return(ret);
 }
 
+// IMPORTANT: this function contrary to CalculateTargetsinExpBinAllMotifs calculates statistics for complementary motifs
+void CSignatureAnalysis::CalculateExpressionAllMotifs(CMutations& muts, string outFilePrefix, CHumanGenome* phuman, string cancer, string sample)
+{
+    set<string> cancers;
+    set<string> samples;
+    cancers.insert(cancer);
+    samples.insert(sample);
+    
+    CHumanGenes genes;
+    genes.LoadGenes(string(HUMAN_GENES));
+    genes.PrepareForSearch();
+    
+    CExpression exp;
+    exp.LoadExpression(string(EXPRESSION_FOLDER)+"/unpivot_expression_"+cancer+".txt");
+    
+    vector<CExpressionBin> expBins;
+    expBins.push_back(CExpressionBin(0,-9999999,0));
+    expBins.push_back(CExpressionBin(1,0,25));
+    expBins.push_back(CExpressionBin(2,25,100));
+    expBins.push_back(CExpressionBin(3,100,300));
+    expBins.push_back(CExpressionBin(4,300,550));
+    expBins.push_back(CExpressionBin(5,550,1000));
+    expBins.push_back(CExpressionBin(6,1000,2000));
+    expBins.push_back(CExpressionBin(7,2000,99999999999));
+
+    map<CResultsKey, CResultsValue> results;
+    map<CResultsKey, CResultsValue>::iterator it;
+    CResultsValue rv;
+    pair<map<CResultsKey, CResultsValue>::iterator, bool> res;
+    
+    CMutation mut;
+    int strand, strandInconsistence;
+    int bin;
+    int chrNum;
+    string motif;
+    int tmp=0;
+    for(int i=0;i<muts.mutations.size();i++)
+    {
+        mut = muts.mutations[i];
+        if (string(mut.chr) == "M")
+            continue;
+        if (!cancers.empty() && cancers.find(string(mut.cancer)) == cancers.end())
+            continue;
+        if (!samples.empty() && samples.find(string(mut.sample)) == samples.end())
+            continue;
+        
+        tmp++;
+        bin = exp.GetExpressionBin(string(mut.sample), string(mut.chr), mut.pos, 1, genes, expBins, strand, strandInconsistence);
+        chrNum = CHumanGenome::GetChrNum(string(mut.chr));
+        motif = string(1,phuman->dna[chrNum][mut.pos-2]) + string(1,phuman->dna[chrNum][mut.pos-1]) + string(1,phuman->dna[chrNum][mut.pos]);
+ 
+        it = results.find(CResultsKey(motif,string(cancer),string(sample),RT_NULLBIN_NOBIN,bin));
+        if ( it == results.end())
+        {
+            rv = CResultsValue(1,0,0,0,0);
+            res = results.insert(pair<CResultsKey,CResultsValue>(CResultsKey(motif,string(cancer),string(sample),RT_NULLBIN_NOBIN,bin), rv));
+            it = res.first;
+        }
+        else
+        {
+            it->second.mutCnt++;
+        }
+        
+        if(strand == 1)
+        {
+            it->second.plusStrandAll++;
+            if(strandInconsistence == 0)
+                it->second.plusStrandConsistent++;
+        }
+        else if(strand == 0)
+        {
+            it->second.minusStrandAll++;
+            if(strandInconsistence == 0)
+                it->second.minusStrandConsistent++;
+        }
+        
+        motif = CDNA::cDNA(motif);
+        it = results.find(CResultsKey(motif,string(cancer),string(sample),RT_NULLBIN_NOBIN,bin));
+        if ( it == results.end())
+        {
+            rv = CResultsValue(1,0,0,0,0);
+            res = results.insert(pair<CResultsKey,CResultsValue>(CResultsKey(motif,string(cancer),string(sample),RT_NULLBIN_NOBIN,bin), rv));
+            it = res.first;
+        }
+        else
+        {
+            it->second.mutCnt++;
+        }
+        
+        if(strand == 0)
+        {
+            it->second.plusStrandAll++;
+            if(strandInconsistence == 0)
+                it->second.plusStrandConsistent++;
+        }
+        else if(strand == 1)
+        {
+            it->second.minusStrandAll++;
+            if(strandInconsistence == 0)
+                it->second.minusStrandConsistent++;
+        }
+    }
+    
+    cout << "Mutnum: " << tmp << '\n';
+    
+    ofstream f;
+    string path;
+    if(cancer == "" && sample == "")
+        path = string(RESULTS_FOLDER)+"/"+outFilePrefix+".txt";
+    else
+        path = string(RESULTS_FOLDER)+"/"+outFilePrefix+"_"+cancer+"_"+sample+".txt";
+    f.open(path.c_str());
+    
+    f << "Motif" << '\t' << "Cancer" << '\t' << "Sample" << '\t' << "ExpressionBin" << '\t' << "MutationCnt" << '\t' << "PlusStrandConsistent" << '\t' << "MinusStrandConsistent" << '\t' << "PlusStrandAll" << '\t' << "MinusStrandAll" << '\n';
+    for(it=results.begin(); it!=results.end(); ++it)
+        f << it->first.motif << '\t' << it->first.cancer << '\t' << it->first.sample << '\t' << it->first.expbin << '\t' << it->second.mutCnt << '\t' << it-> second.plusStrandConsistent << '\t' << it->second.minusStrandConsistent << '\t' << it->second.plusStrandAll << '\t' << it->second.minusStrandAll <<'\n';
+    
+    f.close();
+    
+}
+
+// IMPORTANT: this function contrary to CalculateExpressionAllMotifs DO NOT calculates statistics for complementary motifs
+void CSignatureAnalysis::CalculateTargetsinExpBinAllMotifs(string outFilePrefix, CHumanGenome* phuman, string cancer, string sample)
+{
+    CHumanGenes genes;
+    genes.LoadGenes(string(HUMAN_GENES));
+    genes.PrepareForSearch();
+    
+    CExpression exp;
+    exp.LoadExpression(string(EXPRESSION_FOLDER)+"/unpivot_expression_"+cancer+".txt");
+
+    vector<CExpressionBin> expBins;
+    expBins.push_back(CExpressionBin(0,-9999999,0));
+    expBins.push_back(CExpressionBin(1,0,25));
+    expBins.push_back(CExpressionBin(2,25,100));
+    expBins.push_back(CExpressionBin(3,100,300));
+    expBins.push_back(CExpressionBin(4,300,550));
+    expBins.push_back(CExpressionBin(5,550,1000));
+    expBins.push_back(CExpressionBin(6,1000,2000));
+    expBins.push_back(CExpressionBin(7,2000,99999999999));
+
+    map<CResultsKey, CResultsValue> results;
+    map<CResultsKey, CResultsValue>::iterator it;
+    CResultsValue rv;
+    pair<map<CResultsKey, CResultsValue>::iterator, bool> res;
+    
+    int i,j;
+    int bin;
+    int strand;
+    int strandInconsistence;
+    string motif,cmotif;
+    for(i=0;i<phuman->chrCnt;i++)
+        for(j=1;j<(phuman->chrLen[i]-1);j++)
+        {
+            if(phuman->dna[i][j] == 'N' || phuman->dna[i][j-1] == 'N' || phuman->dna[i][j+1] == 'N')
+                continue;
+            
+            bin = exp.GetExpressionBin(sample, phuman->chrName[i], j+1, 1, genes, expBins, strand, strandInconsistence);
+            
+            motif = string(1,phuman->dna[i][j-1]) + string(1,phuman->dna[i][j]) + string(1,phuman->dna[i][j+1]);
+
+            it = results.find(CResultsKey(motif,string(cancer),string(sample),RT_NULLBIN_NOBIN,bin));
+            if ( it == results.end())
+            {
+                rv = CResultsValue(1,0,0,0,0);
+                res = results.insert(pair<CResultsKey,CResultsValue>(CResultsKey(motif,string(cancer),string(sample),RT_NULLBIN_NOBIN,bin), rv));
+                it = res.first;
+            }
+            else
+            {
+                it->second.mutCnt++;
+            }
+            
+            if(strand == 1)
+            {
+                it->second.plusStrandAll++;
+                if(strandInconsistence == 0)
+                    it->second.plusStrandConsistent++;
+            }
+            else if(strand == 0)
+            {
+                it->second.minusStrandAll++;
+                if(strandInconsistence == 0)
+                    it->second.minusStrandConsistent++;
+            }
+ 
+        }
+
+    ofstream f;
+    string path;
+    if(cancer == "" && sample == "")
+        path = string(RESULTS_FOLDER)+"/"+outFilePrefix+".txt";
+    else
+        path = string(RESULTS_FOLDER)+"/"+outFilePrefix+"_"+cancer+"_"+sample+"_onestrand.txt";
+    f.open(path.c_str());
+    
+    f << "Motif" << '\t' << "Cancer" << '\t' << "Sample" << '\t' << "ExpressionBin" << '\t' << "MutationCnt" << '\t' << "PlusStrandConsistent" << '\t' << "MinusStrandConsistent" << '\t' << "PlusStrandAll" << '\t' << "MinusStrandAll" << '\n';
+    for(it=results.begin(); it!=results.end(); ++it)
+        f << it->first.motif << '\t' << it->first.cancer << '\t' << it->first.sample << '\t' << it->first.expbin << '\t' << it->second.mutCnt << '\t' << it-> second.plusStrandConsistent << '\t' << it->second.minusStrandConsistent << '\t' << it->second.plusStrandAll << '\t' << it->second.minusStrandAll <<'\n';
+    
+    f.close();
+}
 
 void CSignatureAnalysis::CalculateTargetsinExpressionBins(string outFilePrefix, CHumanGenome* phuman, string cancer, string sample, int isSignatureMotif)
 {

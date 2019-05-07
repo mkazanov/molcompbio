@@ -133,7 +133,7 @@ void CHumanGenes::MergeIntervals(vector<CHumanGene>& ret)
 {
     set<CHumanGene>::iterator si;
     CHumanGene prevGene(-1,0);
-    unsigned long startpos,endpos;
+    unsigned long startpos=-1,endpos=-1;
 
     for(si=genes.begin();si!=genes.end();si++)
     {

@@ -63,7 +63,7 @@ void CExpression::LoadExpression(string path)
 
 int CExpression::GetExpression(unsigned long geneId, string sample, double& expressionValue)
 {
-    map<CExpressionKey,double>::iterator it;
+    unordered_map<CExpressionKey,double,hash_pair>::iterator it;
     
     it = data.find(CExpressionKey(geneId,sample));
     if(it == data.end())
@@ -96,6 +96,7 @@ int CExpression::GetExpressionBin(string sample, string chr, unsigned long pos, 
     int expFound;
     
     genes.GetGenesByPos(CHumanGenome::GetChrNum(string(chr)), pos, geneList);
+    
     if(geneList.empty())
     {
         strand = -1;
