@@ -13,7 +13,7 @@ CPP=g++
 # the C Compiler
 CC=gcc
 # Compiler flags for C++
-CPPFLAGS=-g -c
+CPPFLAGS=-g -c -std=c++11
 # Compiler flags for C
 CFLAGS=-g -c
 # Linker Flags
