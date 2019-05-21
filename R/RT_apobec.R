@@ -4,19 +4,19 @@ library(reshape2)
 
 ### Input data
 
-OUTPUT_DIR <- "/Users/mar/BIO/PROJECTS/APOBEC/Project1_TranscriptionLevel/ResultsR"
-apobec <- read.csv("/Users/mar/BIO/PROJECTS/APOBEC/Project1_TranscriptionLevel/Results_CPP/results_RT_APOBEC.txt", sep = '\t',header = TRUE)
+OUTPUT_DIR <- "/Users/mar/BIO/PROJECTS/APOBEC/Project1_TranscriptionLevel/ResultsFinalR"
+apobec <- read.csv("/Users/mar/BIO/PROJECTS/APOBEC/Project1_TranscriptionLevel/ResultsFinal/results_RT_APOBEC.txt", sep = '\t',header = TRUE)
 apobec <- data.table(apobec)
-other <- read.csv("/Users/mar/BIO/PROJECTS/APOBEC/Project1_TranscriptionLevel/Results_CPP/results_RT_OTHER.txt", sep = '\t',header = TRUE)
+other <- read.csv("/Users/mar/BIO/PROJECTS/APOBEC/Project1_TranscriptionLevel/ResultsFinal/results_RT_OTHER.txt", sep = '\t',header = TRUE)
 other <- data.table(other)
 
 # TCW targets
 
-tcwIMR90 <- read.csv("/Users/mar/BIO/PROJECTS/APOBEC/Project1_TranscriptionLevel/Results_CPP/TCW_in_RTbins_IMR90.txt", sep = '\t')
+tcwIMR90 <- read.csv("/Users/mar/BIO/PROJECTS/APOBEC/Project1_TranscriptionLevel/ResultsFinal/TCX_in_RTbins_IMR90.txt", sep = '\t')
 tcwIMR90 <- data.table(tcwIMR90)
-tcwMCF7 <- read.csv("/Users/mar/BIO/PROJECTS/APOBEC/Project1_TranscriptionLevel/Results_CPP/TCW_in_RTbins_MCF7.txt", sep = '\t')
+tcwMCF7 <- read.csv("/Users/mar/BIO/PROJECTS/APOBEC/Project1_TranscriptionLevel/ResultsFinal/TCX_in_RTbins_MCF7.txt", sep = '\t')
 tcwMCF7 <- data.table(tcwMCF7)
-tcwNHEK <- read.csv("/Users/mar/BIO/PROJECTS/APOBEC/Project1_TranscriptionLevel/Results_CPP/TCW_in_RTbins_NHEK.txt", sep = '\t')
+tcwNHEK <- read.csv("/Users/mar/BIO/PROJECTS/APOBEC/Project1_TranscriptionLevel/ResultsFinal/TCX_in_RTbins_NHEK.txt", sep = '\t')
 tcwNHEK <- data.table(tcwNHEK)
 
 tcwIMR90[, CellType := 'IMR90']
@@ -27,11 +27,11 @@ tcwNum <- rbind(tcwIMR90,tcwMCF7,tcwNHEK)
 
 # All targets
 
-allIMR90 <- read.csv("/Users/mar/BIO/PROJECTS/APOBEC/Project1_TranscriptionLevel/Results_CPP/ALL_in_RTbins_IMR90.txt", sep = '\t')
+allIMR90 <- read.csv("/Users/mar/BIO/PROJECTS/APOBEC/Project1_TranscriptionLevel/ResultsFinal/ALL_in_RTbins_IMR90.txt", sep = '\t')
 allIMR90 <- data.table(allIMR90)
-allMCF7 <- read.csv("/Users/mar/BIO/PROJECTS/APOBEC/Project1_TranscriptionLevel/Results_CPP/ALL_in_RTbins_MCF7.txt", sep = '\t')
+allMCF7 <- read.csv("/Users/mar/BIO/PROJECTS/APOBEC/Project1_TranscriptionLevel/ResultsFinal/ALL_in_RTbins_MCF7.txt", sep = '\t')
 allMCF7 <- data.table(allMCF7)
-allNHEK <- read.csv("/Users/mar/BIO/PROJECTS/APOBEC/Project1_TranscriptionLevel/Results_CPP/ALL_in_RTbins_NHEK.txt", sep = '\t')
+allNHEK <- read.csv("/Users/mar/BIO/PROJECTS/APOBEC/Project1_TranscriptionLevel/ResultsFinal/ALL_in_RTbins_NHEK.txt", sep = '\t')
 allNHEK <- data.table(allNHEK)
 
 allIMR90[, CellType := 'IMR90']
@@ -83,15 +83,15 @@ for(i in 1:nrow(cancers))
 for(i in 1:nrow(cancers))
 {
  samples <- data.table("sample"=unique(apobec[Cancer == cancers[i]$cancer, Sample]))
- cellLine <- cellCancer[Cancer == cancers[i]$cancer, CellType]
+ cellLine <- cellCancer[Cancer == cancers[i]$cancer, CellLine]
  tcwNumCancer <- tcwNum[CellType == cellLine] 
  allNumCancer <- allNum[CellType == cellLine]
  
  for (j in 1:nrow(samples))
  {
   enrich <- enrichment[cancer == cancers[i]$cancer & sample == samples[j]$sample]
-  enrichChar <- paste0(gsub("\\.","_",round(enrich$Enrichment_exclude_TCW,2)),"_")
   enrichGordenin <- gordeninEnrichment[CANCER_TYPE == cancers[i]$cancer & SAMPLE == samples[j]$sample]  
+  enrichChar <- paste0(gsub("\\.","_",round(enrichGordenin$APOBEC_ENRICHMENT,2)),"_")
   
   # APOBEC 
   dt <- apobec[Sample == samples[j]$sample & Cancer == cancers[i]$cancer]
@@ -178,5 +178,5 @@ for(i in 1:nrow(cancers))
  }
 }
 
-write.csv(res,"/Users/mar/BIO/PROJECTS/APOBEC/Project1_TranscriptionLevel/ResultsR/RT/coefs.csv")
+write.csv(res,paste0(OUTPUT_DIR,"/RT/coefs.csv"))
 

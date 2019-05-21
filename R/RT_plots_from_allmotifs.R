@@ -4,7 +4,7 @@ library(reshape2)
 
 ROOT_DIR <- "/Users/mar/BIO/PROJECTS/APOBEC/Project1_TranscriptionLevel/ResultsFinalR/RTplots"
 
-data <- read.csv("/Users/mar/BIO/PROJECTS/APOBEC/Project1_TranscriptionLevel/ResultsFinalR/RT/coefs.csv", sep = ',',header = TRUE)
+data <- read.csv("/Users/mar/BIO/PROJECTS/APOBEC/Project1_TranscriptionLevel/ResultsFinalR/RT/coefsFinal.csv", sep = ',',header = TRUE)
 data <- data.table(data)
 data[, SlopeDifference := ApobecSlope - OtherSlope]
 
@@ -32,24 +32,6 @@ for(i in 1:nrow(cancers))
 
   ggsave(paste0(ROOT_DIR,"/",cancers[i]$cancer,"/",cancers[i]$cancer,"_RTOtherSlope.jpg"), plot = p, device = "jpeg")
   
-  dt <- data[Cancer == cancers[i]$cancer]
-  p <- ggplot(dt, aes(x=GordeninEnrichment, y=LaggingSlope)) + 
-    geom_point()
-  
-  ggsave(paste0(ROOT_DIR,"/",cancers[i]$cancer,"/",cancers[i]$cancer,"_RTLaggingSlope.jpg"), plot = p, device = "jpeg")
-  
-  dt <- data[Cancer == cancers[i]$cancer]
-  p <- ggplot(dt, aes(x=GordeninEnrichment, y=LeadingSlope)) + 
-    geom_point()
-  
-  ggsave(paste0(ROOT_DIR,"/",cancers[i]$cancer,"/",cancers[i]$cancer,"_RTLeadingSlope.jpg"), plot = p, device = "jpeg")
-
-  dt <- data[Cancer == cancers[i]$cancer]
-  p <- ggplot(dt, aes(x=GordeninEnrichment, y=StrandRatioSlope)) + 
-    geom_point()
-  
-  ggsave(paste0(ROOT_DIR,"/",cancers[i]$cancer,"/",cancers[i]$cancer,"_RTStrandRatioSlope.jpg"), plot = p, device = "jpeg")
-
   dt <- data[Cancer == cancers[i]$cancer]
   p <- ggplot(dt, aes(x=GordeninEnrichment, y=SlopeDifference)) + 
     geom_point() #+
