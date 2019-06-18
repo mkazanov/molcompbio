@@ -14,6 +14,5 @@
 #define RESULTS_FOLDER "/Users/mar/BIO/PROJECTS/APOBEC/Project1_TranscriptionLevel/Results_CPP"
 #define CANCER_MUTATIONS "/Users/mar/BIO/BIODATA/CancerMutations/Fredriksson_et_al_2014/mutations.tsv"
 #define REPLICATION_TIMING_FOLDER "/Users/mar/BIO/BIODATA/ReplicationTiming"
-#define EXPRESSION_FOLDER "/Users/mar/BIO/PROJECTS/APOBEC/Project1_TranscriptionLevel/expression"
 
 #endif /* options_h */
