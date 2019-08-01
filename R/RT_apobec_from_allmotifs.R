@@ -101,21 +101,23 @@ for(i in 1:nrow(cancers))
       mutcnt <- dt1[, sum(MutationCnt)]
       coefs <- rbind(coefs, data.frame("coef"=ret$coefficients[[2]], "mutcnt"=mutcnt, "coef3"=ret2$coefficients[[2]]))  
     }
- 
-  
-  if(samples[j]$sample == "TCGA-05-4396-01A"){
-    stop("ququ")
-  }
   
    coefsAll <- data.frame()  
      
-   for(m in c("AAA","AAC","AAG","AAT","ACA","ACC","ACG","AGC","AGG","AGT",
-              "ATA","ATC","ATG","CAA","CAG","CCA","CGG","CTA","GAA","GAC",
-              "GAG","GCA","GCG","GGC","GGG","GTA","GTG","TAA")) 
+   # All other triplets with middle C
+   for(m in c("ACA","ACC","ACG","GCT","CCT","ACT","CCA","CCG","GCA","GCG","GCC","CCC")) 
    {
-     dt <- read.csv(paste0(MOTIFS_DIR,m,"_3.txt"),sep='\t')
-     dt <- data.table(dt)
-     dt <- dt[Sample == samples[j]$sample & Cancer == cancers[i]$cancer]
+     xt <- read.csv(paste0(MOTIFS_DIR,m,"_T.txt"),sep='\t')
+     xt <- data.table(xt)
+     xt <- xt[Sample == samples[j]$sample & Cancer == cancers[i]$cancer]
+     
+     xg <- read.csv(paste0(MOTIFS_DIR,m,"_G.txt"),sep='\t')
+     xg <- data.table(xg)
+     xg <- xg[Sample == samples[j]$sample & Cancer == cancers[i]$cancer]
+     
+     tmp <- rbind(xt,xg)
+     
+     dt <- tmp[,.("MutationCnt"=sum(MutationCnt)),by=.(Cancer,Sample,ReplicationBin)]
      dt <- dt[ReplicationBin %in% c(0,1,2,3,4,5,6)]
      trgNum <- read.csv(paste0(MOTIFS_DIR,m,"_in_RTbins_",cellLine,".txt"),sep="\t")
      trgNum <- data.table(trgNum)
@@ -137,7 +139,6 @@ for(i in 1:nrow(cancers))
      coefsAll <- rbind(coefsAll, data.frame("coef"=ret$coefficients[[2]], "mutcnt"=mutcnt,"motif"=m))  
      
    }
-  
   
     coefs <- data.table(coefs)
     mutTotal <- coefs[1]$mutcnt + coefs[2]$mutcnt + coefs[3]$mutcnt + coefs[4]$mutcnt

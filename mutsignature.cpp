@@ -64,7 +64,7 @@ set<string>  CMutationSignature::AddcMotifs(set<string> motifs)
     return(motifsall);
 }
 
-CDNAPos CMutationSignature::NextMotif(CDNAPos pos, char** motifsarr, int motifsnum, int motiflen, CHumanGenome* phuman, int end, int includeCurrentPos)
+CDNAPos CMutationSignature::NextMotif(CDNAPos pos, char** motifsarr, int* strandarr, int motifsnum, int motiflen, CHumanGenome* phuman, int end, int includeCurrentPos)
 {
     CDNAPos ret = CDNAPos(-1,0);
     int endChrNum;
@@ -104,6 +104,7 @@ CDNAPos CMutationSignature::NextMotif(CDNAPos pos, char** motifsarr, int motifsn
                     continue;
                 ret.chrNum = i;
                 ret.pos = j;
+                ret.strand = strandarr[k];
                 return(ret);
             }
         }
@@ -119,6 +120,7 @@ unsigned long CMutationSignature::CountMotifGenome(set<string> motifs, CHumanGen
     set<string>::iterator si;
     int includeCurPos=1;
     char** motifsarr;
+    int* strandarr;
     int motiflen, motifsnum;
     int i;
     
@@ -130,8 +132,15 @@ unsigned long CMutationSignature::CountMotifGenome(set<string> motifs, CHumanGen
     
     // Prepare char array for copying motifs
     motifsarr = new char*[motifsall.size()];
+    strandarr = new int[motifsall.size()];
     for(i=0;i<motifsall.size();i++)
+    {
         motifsarr[i] = new char[motiflen];
+        if(i<motifs.size())
+            strandarr[i] = 1;
+        else
+            strandarr[i] = 0;
+    }
     
     // Copy motifs to char array
     i = 0;
@@ -142,9 +151,9 @@ unsigned long CMutationSignature::CountMotifGenome(set<string> motifs, CHumanGen
     }
     
     CDNAPos pos;
-    for(pos=NextMotif(CDNAPos(0,0),motifsarr,motifsnum,motiflen,phuman,END_GENOME,includeCurPos);
+    for(pos=NextMotif(CDNAPos(0,0),motifsarr,strandarr,motifsnum,motiflen,phuman,END_GENOME,includeCurPos);
         !pos.isNull();
-        pos=NextMotif(pos,motifsarr,motifsnum,motiflen,phuman,END_GENOME))
+        pos=NextMotif(pos,motifsarr,strandarr,motifsnum,motiflen,phuman,END_GENOME))
         res++;
     
     return(res);

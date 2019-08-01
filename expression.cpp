@@ -151,6 +151,7 @@ map<int,unsigned long> CExpression::CalculateMotifsExpressionBins(vector<CExpres
     
     CMutationSignature msobj;
     char** motifsarr;
+    int* strandarr;
     msobj.CheckMotifsNotEmpty(motifs);
     msobj.CheckMotifsSameLength(motifs);
     motifsall = msobj.AddcMotifs(motifs);
@@ -158,8 +159,15 @@ map<int,unsigned long> CExpression::CalculateMotifsExpressionBins(vector<CExpres
     
     // Prepare char array for copying motifs
     motifsarr = new char*[motifsall.size()];
+    strandarr = new int[motifsall.size()];
     for(i=0;i<motifsall.size();i++)
+    {
         motifsarr[i] = new char[motiflen];
+        if(i<motifs.size())
+            strandarr[i] = 1;
+        else
+            strandarr[i] = 0;
+    }
     
     // Copy motifs to char array
     i = 0;
@@ -182,9 +190,9 @@ map<int,unsigned long> CExpression::CalculateMotifsExpressionBins(vector<CExpres
     int bin;
     int strand;
     int strandInconsistence;
-    for(pos=msobj.NextMotif(CDNAPos(0,0),motifsarr,motifsnum,motiflen,phuman,END_GENOME,includeCurPos);
+    for(pos=msobj.NextMotif(CDNAPos(0,0),motifsarr,strandarr,motifsnum,motiflen,phuman,END_GENOME,includeCurPos);
         !pos.isNull();
-        pos=msobj.NextMotif(pos,motifsarr,motifsnum,motiflen,phuman,END_GENOME))
+        pos=msobj.NextMotif(pos,motifsarr,strandarr,motifsnum,motiflen,phuman,END_GENOME))
     {
         
         bin = GetExpressionBin(sample, phuman->chrName[pos.chrNum], pos.pos, 1, genes, expBins, strand, strandInconsistence);        

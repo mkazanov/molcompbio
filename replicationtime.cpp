@@ -189,13 +189,17 @@ void CReplicationTiming::SaveToFile(string path)
 int CReplicationTiming::CalculateMotifinRTBins(set<string> motifs, string OUT_PATH, CHumanGenome* phuman)
 {
     CMutationSignature msobj;
+    CReplicationTime rt;
     int bin;
     map<int,unsigned long> results;
+    map<int,unsigned long> leading;
+    map<int,unsigned long> lagging;
     map<int,unsigned long>::iterator it;
     set<string> motifsall;
     set<string>::iterator si;
     long motiflen,motifsnum;
     char** motifsarr;
+    int* strandarr;
     int i;
     
     msobj.CheckMotifsNotEmpty(motifs);
@@ -206,9 +210,16 @@ int CReplicationTiming::CalculateMotifinRTBins(set<string> motifs, string OUT_PA
     
     // Prepare char array for copying motifs
     motifsarr = new char*[motifsall.size()];
+    strandarr = new int[motifsall.size()];
     for(i=0;i<motifsall.size();i++)
+    {
         motifsarr[i] = new char[motiflen];
-    
+        if(i<motifs.size())
+            strandarr[i] = 1;
+        else
+            strandarr[i] = 0;
+    }
+        
     // Copy motifs to char array
     i = 0;
     for(si=motifsall.begin();si!=motifsall.end();si++)
@@ -219,19 +230,41 @@ int CReplicationTiming::CalculateMotifinRTBins(set<string> motifs, string OUT_PA
 
     results[RT_NULLBIN_NOVALUE] = 0;
     results[RT_NULLBIN_NOBIN] = 0;
+    leading[RT_NULLBIN_NOVALUE] = 0;
+    leading[RT_NULLBIN_NOBIN] = 0;
+    lagging[RT_NULLBIN_NOVALUE] = 0;
+    lagging[RT_NULLBIN_NOBIN] = 0;
     for(int i=0;i<bins.size();i++)
+    {
         results[bins[i].binNum] = 0;
+        leading[bins[i].binNum] = 0;
+        lagging[bins[i].binNum] = 0;
+    }
     
     CDNAPos pos = CDNAPos(0,0);
     int includeCurPos=1;
     int chrNum = 0;
+    int res;
     cout << "Chr:" << pos.chrNum << ", Pos:" << pos.pos << '\n';
-    for(pos=msobj.NextMotif(CDNAPos(0,0),motifsarr,(int)motifsnum,(int)motiflen,phuman,END_GENOME,includeCurPos);
+    for(pos=msobj.NextMotif(CDNAPos(0,0),motifsarr,strandarr,(int)motifsnum,(int)motiflen,phuman,END_GENOME,includeCurPos);
         !pos.isNull();
-        pos=msobj.NextMotif(pos,motifsarr,(int)motifsnum,(int)motiflen,phuman,END_GENOME))
+        pos=msobj.NextMotif(pos,motifsarr,strandarr,(int)motifsnum,(int)motiflen,phuman,END_GENOME))
     {
-        bin = GetRTBin(pos.chrNum,pos.pos+(motiflen/2)+1,bins);
+        res = GetRT(pos.chrNum, pos.pos+(motiflen/2)+1, rt);
+        if(res)
+            bin = GetRTBin(rt.RTvalue, bins);
+        else
+            bin = RT_NULLBIN_NOVALUE;
         results[bin]++;
+        
+        if(bin != RT_NULLBIN_NOVALUE)
+        {
+            if((pos.strand == 1 && rt.isForward == 1) || (pos.strand == 0 && rt.isForward == 0))
+                lagging[bin]++;
+            else if((pos.strand == 1 && rt.isForward == 0) || (pos.strand == 0 && rt.isForward == 1))
+                leading[bin]++;
+        }
+        
         if(chrNum != pos.chrNum)
         {
             cout << "Chr:" << pos.chrNum << ", Pos:" << pos.pos << '\n';
@@ -242,9 +275,9 @@ int CReplicationTiming::CalculateMotifinRTBins(set<string> motifs, string OUT_PA
     ofstream f;
     f.open(OUT_PATH.c_str());
     
-    f << "ReplicationBin" << '\t' << "TargetCnt" << '\n';
+    f << "ReplicationBin" << '\t' << "TargetCnt" << '\t' << "Leading" << '\t' << "Lagging" << '\n';
     for(it=results.begin(); it!=results.end(); ++it)
-        f << it->first << '\t' << it->second <<'\n';
+        f << it->first << '\t' << it->second << '\t' << leading[it->first] << '\t' << lagging[it->first] << '\n';
     
     f.close();
     
