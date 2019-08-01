@@ -31,7 +31,7 @@ public:
     int CheckMotifsNotEmpty(set<string> motifs);
     int CheckMotifsSameLength(set<string> motifs);
     set<string> AddcMotifs(set<string> motifs);
-    CDNAPos NextMotif(CDNAPos pos, char** motifsarr, int motifsnum, int motiflen, CHumanGenome* phuman, int end, int includeCurrentPos=0);
+    CDNAPos NextMotif(CDNAPos pos, char** motifsarr, int* strandarr, int motifsnum, int motiflen, CHumanGenome* phuman, int end, int includeCurrentPos=0);
     unsigned long CountMotifGenome(set<string> motifs, CHumanGenome* phuman);
 };
 

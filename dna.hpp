@@ -40,6 +40,7 @@ class CDNAPos{
 public:
     int chrNum;
     unsigned long pos;
+    int strand;
     CDNAPos(){};
     CDNAPos(int chrNum_, unsigned long pos_);
     int isNull();

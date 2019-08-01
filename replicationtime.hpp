@@ -63,7 +63,6 @@ public:
     int GetRT(int chrNum, unsigned long pos, double& RTvalue);
     int GetRT(int chrNum, unsigned long pos, CReplicationTime& rtobj);
     int GetRTBin(double RTvalue, vector<CRTBin> bins);
-    int GetRTBin(CReplicationTime rt, vector<CRTBin> bins);
     int GetRTBin(int chrNum, unsigned long pos, vector<CRTBin> bins);
     void ReplicationStrand();
     void SaveToFile(string path);

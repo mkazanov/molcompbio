@@ -82,10 +82,6 @@ void CSignatureAnalysis:: ClassifyMutations(CHumanGenome* phuman_)
     m.LoadMutations(CANCER_MUTATIONS, isHeader);
 
     // Filter APOBEC mutations
-    //signatures.push_back(CMutationSignature("TCA",2,"T"));
-    //signatures.push_back(CMutationSignature("TCT",2,"T"));
-    //signatures.push_back(CMutationSignature("TCA",2,"G"));
-    //signatures.push_back(CMutationSignature("TCT",2,"G"));
     
     set<string> cancers;
     set<string> samples;
@@ -95,7 +91,7 @@ void CSignatureAnalysis:: ClassifyMutations(CHumanGenome* phuman_)
     cancers.insert("LUAD");
     cancers.insert("LUSC");
     m.FilterMutations(signatureMuts,signatures,(*phuman),cancers,samples,&otherMuts);
-    //apobecMuts.SaveToFile("/Users/mar/BIO/BIODATA/CancerMutations/Fredriksson_et_al_2014/mutations_apobec.tsv");
+    signatureMuts.SaveToFile("/Users/mar/63/mutations_apobec.tsv");
     
     signatureMuts.GetUniqueCancersSamples();
     
@@ -311,10 +307,13 @@ void CSignatureAnalysis::CalculateTargetsinRTBins(string dir_motifname, CHumanGe
     CReplicationTiming rtNHEK;
     path = string(REPLICATION_TIMING_FOLDER)+string("/wgEncodeUwRepliSeqImr90WaveSignalRep1.mybed");
     rtIMR90.LoadReplicationTiming(path.c_str(), 0);
+    rtIMR90.ReplicationStrand();
     path = string(REPLICATION_TIMING_FOLDER)+string("/wgEncodeUwRepliSeqMcf7WaveSignalRep1.mybed");
     rtMCF7.LoadReplicationTiming(path.c_str(), 0);
+    rtMCF7.ReplicationStrand();
     path = string(REPLICATION_TIMING_FOLDER)+string("/wgEncodeUwRepliSeqNhekWaveSignalRep1.mybed");
     rtNHEK.LoadReplicationTiming(path.c_str(), 0);
+    rtNHEK.ReplicationStrand();
 
     rtIMR90.bins.push_back(CRTBin(0,-100,13.0766));
     rtIMR90.bins.push_back(CRTBin(1,13.0766,28.3851));

@@ -41,7 +41,10 @@ a.signatures.push_back(CMutationSignature("TCA",2,"T"));
 a.signatures.push_back(CMutationSignature("TCT",2,"T"));
 a.signatures.push_back(CMutationSignature("TCA",2,"G"));
 a.signatures.push_back(CMutationSignature("TCT",2,"G"));
-
+a.signatures.push_back(CMutationSignature("TCC",2,"T"));
+a.signatures.push_back(CMutationSignature("TCG",2,"T"));
+a.signatures.push_back(CMutationSignature("TCC",2,"G"));
+a.signatures.push_back(CMutationSignature("TCG",2,"G"));
 
 a.ClassifyMutations(&human);
 
@@ -51,7 +54,7 @@ a.ClassifyMutations(&human);
  
  //a.AnalyzeReplicationTiming(a.signatureMuts,"results_RT_APOBEC.txt");
  //a.AnalyzeReplicationTiming(a.otherMuts,"results_RT_OTHER.txt");
- //a.CalculateTargetsinRTBins("TCW",&human,1);
+ a.CalculateTargetsinRTBins("TCX",&human,1);
  //a.CalculateTargetsinRTBins("ALL",&human,0);
 
 
@@ -71,10 +74,10 @@ a.ClassifyMutations(&human);
 //a.AnalyzeRTExpression(a.apobecMuts,"results_RTexp_APOBEC.txt");
 //a.AnalyzeRTExpression(a.otherMuts,"results_RTexp_OTHER.txt");
 
-if(argc > 1)
- a.CalculateTargetsinRTexpressionBins("TCW_in_RTEXPbins",&human,argv[1],argv[2],1);
-else
- a.CalculateTargetsinRTexpressionBins("TCW_in_RTEXPbins",&human);
+//if(argc > 1)
+// a.CalculateTargetsinRTexpressionBins("TCW_in_RTEXPbins",&human,argv[1],argv[2],1);
+//else
+// a.CalculateTargetsinRTexpressionBins("TCW_in_RTEXPbins",&human);
 
 
 // End date/time
