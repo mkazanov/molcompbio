@@ -30,8 +30,10 @@ public:
         else
             ret = str2i(chr) - 1;
         
-        assert(ret >= 0 && ret < 24);
-        return(ret);
+        if(ret >= 0 && ret < 24)
+            return(ret);
+        else
+            return(-1);
     }
     static int GetChrFromNCBIName(string chr)
     {

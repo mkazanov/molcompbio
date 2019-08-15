@@ -22,6 +22,11 @@
 #define EXP_NULLBIN_NOEXPDATA   -1
 #define EXP_NULLBIN_CNT 2
 
+#define EXP_STRAND_PLUS 1
+#define EXP_STRAND_MINUS    0
+#define EXP_STRAND_NULL -1
+
+
 using namespace std;
 
 class CExpressionKey
@@ -78,10 +83,20 @@ public:
     };
     
     unordered_map<CExpressionKey, double, hash_pair> data;
-    void LoadExpression(string path);
+    unordered_map<unsigned long, double> dataSample;
+    void LoadExpression(string path, string sample = "");
     int GetExpression(unsigned long geneId, string sample, double& expressionValue);
     int GetExpressionBinByValue(double expValue, vector<CExpressionBin> bins);
     int GetExpressionBin(string sample, string chr, unsigned long pos, char isForwardMut, CHumanGenes& genes, vector<CExpressionBin>& expBins, int& strand, int& strandInconsistence);
     map<int,unsigned long> CalculateMotifsExpressionBins(vector<CExpressionBin> expBins, CHumanGenes& genes, set<string> motifs, string sample, CHumanGenome* phuman);
+    static int oppositeStrand(int strand)
+    {
+        if(strand == EXP_STRAND_PLUS)
+            return(EXP_STRAND_MINUS);
+        else if(strand == EXP_STRAND_MINUS)
+            return(EXP_STRAND_PLUS);
+        else
+            return(EXP_STRAND_NULL);
+    }
 };
 #endif /* expression_hpp */

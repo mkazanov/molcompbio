@@ -82,8 +82,9 @@ public:
               string sample_,
               string chr_,
               string pos_,
-              string refallele,
-              string varallele);
+              string refallele_,
+              string varallele_,
+              char isForwardStrand_);
     CMutation(){};
 };
 
@@ -91,7 +92,7 @@ class CMutations{
 public:
     vector<CMutation> mutations;
     unsigned long mutationsCnt;
-    void LoadMutations(string path, int isHeader);
+    void LoadMutations(string path, int isHeader, vector<string> onlyCancers=vector<string>(), vector<string> onlySamples=vector<string>(), int onlySubs=1, CHumanGenome* phuman = NULL);
     void FilterMutations(CMutations& filteredMutations,
                          vector<CMutationSignature>& signatures,
                          CHumanGenome& human,

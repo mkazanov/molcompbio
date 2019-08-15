@@ -83,6 +83,109 @@ public:
     CResultsValue(){};
 };
 
+class CRTexpMapKey {
+public:
+    string motif;
+    int RTbin;
+    int expbin;
+    int RTstrand;
+    int senseStrand;
+    char mutbase;
+    CRTexpMapKey(string motif_, int RTbin_, int expbin_, int RTstrand_, int senseStrand_, char mutbase_);
+    bool operator< (const CRTexpMapKey &right) const
+    {
+        if(motif < right.motif)
+            return true;
+        else if (motif > right.motif)
+            return false;
+        else
+        {
+            if(RTbin < right.RTbin)
+                return true;
+            else if (RTbin > right.RTbin)
+                return false;
+            else
+            {
+                if (expbin < right.expbin)
+                    return true;
+                else if (expbin > right.expbin)
+                    return false;
+                else
+                {
+                    if(RTstrand < right.RTstrand)
+                        return true;
+                    else if (RTstrand > right.RTstrand)
+                        return false;
+                    else
+                    {
+                        if(senseStrand < right.senseStrand)
+                            return true;
+                        else if (senseStrand > right.senseStrand)
+                            return false;
+                        else
+                        {
+                            if(mutbase < right.mutbase)
+                                return true;
+                            else if(mutbase > right.mutbase)
+                                return false;
+                            else
+                                return false;
+                        }
+                    }
+                }
+            }
+        }
+    }
+};
+
+
+class CRTexpMapKey2 {
+public:
+    string motif;
+    int RTbin;
+    int expbin;
+    int RTstrand;
+    int senseStrand;
+    CRTexpMapKey2(string motif_, int RTbin_, int expbin_, int RTstrand_, int senseStrand_);
+    bool operator< (const CRTexpMapKey2 &right) const
+    {
+        if(motif < right.motif)
+            return true;
+        else if (motif > right.motif)
+            return false;
+        else
+        {
+            if(RTbin < right.RTbin)
+                return true;
+            else if (RTbin > right.RTbin)
+                return false;
+            else
+            {
+                if (expbin < right.expbin)
+                    return true;
+                else if (expbin > right.expbin)
+                    return false;
+                else
+                {
+                    if(RTstrand < right.RTstrand)
+                        return true;
+                    else if (RTstrand > right.RTstrand)
+                        return false;
+                    else
+                    {
+                        if(senseStrand < right.senseStrand)
+                            return true;
+                        else if (senseStrand > right.senseStrand)
+                            return false;
+                        else
+                            return false;
+                    }
+                }
+            }
+        }
+    }
+};
+
 class CMapKey {
 public:
     string cancer;
@@ -138,6 +241,7 @@ public:
     void CalculateTargetsinRTexpressionBins(string outFilePrefix, CHumanGenome* phuman = NULL, string cancer = "", string sample = "", int isAPOBECmotif = 1);
     void CalculateExpressionAllMotifs(CMutations& muts, string outFilePrefix, CHumanGenome* phuman, string cancer, string sample);
     void CalculateTargetsinExpBinAllMotifs(string outFilePrefix, CHumanGenome* phuman, string cancer, string sample);
+    void RTExpAllMotifs(CMutations& muts, string dirpath, map<string,CReplicationTiming*> rtmap,     CExpression exp, vector<CExpressionBin> expBins, CHumanGenome* phuman, CHumanGenes genes, string cancer, string sample);
     
     void CalculateAPOBECEnrichment(CHumanGenome* phuman_ = NULL);
     set<CCancerSample> LoadCancerSamples(string path);

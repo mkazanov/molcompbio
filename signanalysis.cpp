@@ -406,7 +406,7 @@ void CSignatureAnalysis::CalculateExpressionAllMotifs(CMutations& muts, string o
     
     CHumanGenes genes;
     genes.LoadGenes(string(HUMAN_GENES));
-    genes.PrepareForSearch();
+    genes.PrepareForSearch()    ;
     
     CExpression exp;
     exp.LoadExpression(string(EXPRESSION_FOLDER)+"/unpivot_expression_"+cancer+".txt");
@@ -1089,4 +1089,215 @@ void CSignatureAnalysis::CalculateTargetsinRTexpressionBins(string outFilePrefix
     
     f.close();
 
+}
+
+CRTexpMapKey2::CRTexpMapKey2(string motif_, int RTbin_, int expbin_, int RTstrand_, int senseStrand_)
+{
+    motif = motif_;
+    RTbin = RTbin_;
+    expbin = expbin_;
+    RTstrand = RTstrand_;
+    senseStrand = senseStrand_;
+}
+
+CRTexpMapKey::CRTexpMapKey(string motif_, int RTbin_, int expbin_, int RTstrand_, int senseStrand_, char mutbase_)
+{
+    motif = motif_;
+    RTbin = RTbin_;
+    expbin = expbin_;
+    RTstrand = RTstrand_;
+    senseStrand = senseStrand_;
+    mutbase = mutbase_;
+}
+
+void CSignatureAnalysis::RTExpAllMotifs(CMutations& muts, string dirpath, map<string,CReplicationTiming*> rtmap,     CExpression exp, vector<CExpressionBin> expBins, CHumanGenome* phuman, CHumanGenes genes, string cancer, string sample)
+{
+    int res;
+    int RTbin;
+    int expbin;
+    int RTstrand;
+    int expStrand, strandInconsistence;
+    int chrNum;
+    int rtBinsSize;
+    string motif;
+    clock_t t1,t2,t3,t4,t5,st4,st5;
+    char nuc[4] = {'A','G','C','T'};
+    set<string> motifs;
+    set<string>::iterator mit;
+    int i,j,k;
+
+    CReplicationTime rt;
+    
+    map<CRTexpMapKey, unsigned long> results,results2strands;
+    map<CRTexpMapKey, unsigned long>::iterator it,it2;
+    
+    for(i=0;i<4;i++)
+        for(j=0;j<4;j++)
+            for(k=0;k<4;k++)
+            {
+                motif = string(1,nuc[i])+string(1,nuc[j])+string(1,nuc[k]);
+                motifs.insert(motif);
+            }
+    
+    rtBinsSize = rtmap[cancer]->bins.size();
+    
+    CMutation mut;
+    t1 = clock();
+    for(int i=0;i<muts.mutations.size();i++)
+    {
+        mut = muts.mutations[i];
+        
+        // RT
+        res = rtmap[string(mut.cancer)]->GetRT(CHumanGenome::GetChrNum(string(mut.chr)), mut.pos, rt);
+        if(res)
+            RTbin = rtmap[string(mut.cancer)]->GetRTBin(rt.RTvalue, (rtmap[string(mut.cancer)]->bins));
+        else
+            RTbin = RT_NULLBIN_NOVALUE;
+        
+        if((mut.isForwardStrand == 1 && rt.isForward == 0) || (mut.isForwardStrand == 0 && rt.isForward == 1))
+            RTstrand = STRAND_LEADING;
+        else if((mut.isForwardStrand == 1 && rt.isForward == 1) || (mut.isForwardStrand == 0 && rt.isForward == 0))
+            RTstrand = STRAND_LAGGING;
+        else
+            RTstrand = STRAND_NULL;
+        
+        // Expression
+        expbin = exp.GetExpressionBin(string(mut.sample), string(mut.chr), mut.pos, 1, genes, expBins, expStrand, strandInconsistence);
+
+        // Motif
+        chrNum = CHumanGenome::GetChrNum(string(mut.chr));
+        motif = string(1,phuman->dna[chrNum][mut.pos-2]) + string(1,phuman->dna[chrNum][mut.pos-1]) + string(1,phuman->dna[chrNum][mut.pos]);
+        
+        cout << mut.chr << '\t' << mut.pos << '\t' << motif << '\t' << RTbin << '\t' << RTstrand << '\t' << expbin << '\t' << expStrand << '\n';
+
+        // write results to map
+        it = results.find(CRTexpMapKey(motif,RTbin,expbin,RTstrand,expStrand,mut.varallele[0]));
+        if(it != results.end())
+            it->second++;
+        else
+            results.insert(pair<CRTexpMapKey, unsigned long>(CRTexpMapKey(motif,RTbin,expbin,RTstrand,expStrand,mut.varallele[0]), 1));
+    }
+  
+    /*ofstream f;
+    string path;
+    path = dirpath + "/RTEXP_MUT_" + sample + "_onestrand.txt";
+    f.open(path.c_str());
+    for(it=results.begin();it!=results.end();it++)
+    f << it->first.motif << '\t' << it->first.RTbin << '\t' << it->first.RTstrand << '\t' << it->first.expbin << '\t' << it->first.senseStrand << '\t' << it->first.mutbase << '\t' << it->second << '\n';
+    f.close();*/
+    
+    results2strands = results;
+    
+    string cmotif;
+    char cvarallele;
+    int opRTstrand;
+    int opEXPstrand;
+    for(it=results.begin();it!=results.end();it++)
+    {
+        cmotif = CDNA::cDNA(it->first.motif);
+        cvarallele = CDNA::cDNA(string(1,it->first.mutbase))[0];
+        opRTstrand = CReplicationTiming::oppositeStrand(it->first.RTstrand);
+        opEXPstrand = CExpression::oppositeStrand(it->first.senseStrand);
+        it2 = results2strands.find(CRTexpMapKey(cmotif,it->first.RTbin,it->first.expbin,opRTstrand,opEXPstrand,cvarallele));
+        if(it2 != results2strands.end())
+            it2->second += it->second;
+        else
+            results2strands.insert(pair<CRTexpMapKey, unsigned long>(CRTexpMapKey(cmotif,it->first.RTbin,it->first.expbin,opRTstrand,opEXPstrand,cvarallele), it->second));
+    }
+    
+    ofstream f;
+    string path;
+    path = dirpath + "/RTEXP_MUT_" + sample + ".txt";
+    f.open(path.c_str());
+    for(it=results2strands.begin();it!=results2strands.end();it++)
+        f << it->first.motif << '\t' << it->first.RTbin << '\t' << it->first.RTstrand << '\t' << it->first.expbin << '\t' << it->first.senseStrand << '\t' << it->first.mutbase << '\t' << it->second << '\n';
+    f.close();
+    
+    // Targets
+    
+    t2 = clock();
+ 
+    map<CRTexpMapKey2, unsigned long> resultsT,results2strandsT;
+    map<CRTexpMapKey2, unsigned long>::iterator itT,it2T;
+    
+    for(mit=motifs.begin();mit!=motifs.end();mit++)
+        for(RTbin=(-RT_NULLBIN_CNT);RTbin<rtBinsSize;RTbin++)
+            for(expbin=(-EXP_NULLBIN_CNT);expbin<(int)expBins.size();expbin++)
+                for(i=-1;i<2;i++)
+                    for(j=-1;j<2;j++)
+                        resultsT.insert(pair<CRTexpMapKey2, unsigned long>(CRTexpMapKey2((*mit),RTbin,expbin,i,j), 0));
+    
+    for(i=0;i<phuman->chrCnt;i++)
+    {
+        cout << "Chromosome: " << i << '\n';
+        st4 = 0; st5 = 0;
+       for(j=1;j<(phuman->chrLen[i]-1);j++)
+        {
+            if(!(CDNA::inACGT(phuman->dna[i][j]) &&
+               CDNA::inACGT(phuman->dna[i][j-1]) &&
+               CDNA::inACGT(phuman->dna[i][j+1])))
+                continue;
+            
+            // RT
+            t4 = clock();
+            res = rtmap[cancer]->GetRT(i, j+1, rt);
+            if(res)
+                RTbin = rtmap[cancer]->GetRTBin(rt.RTvalue, (rtmap[cancer]->bins));
+            else
+                RTbin = RT_NULLBIN_NOVALUE;
+            
+            if(rt.isForward == 0)
+                RTstrand = STRAND_LEADING;
+            else if(rt.isForward == 1)
+                RTstrand = STRAND_LAGGING;
+            else
+                RTstrand = STRAND_NULL;
+            
+            st4 += (clock()-t4);
+
+            // Expression
+            t5 = clock();
+            expbin = exp.GetExpressionBin(sample, phuman->chrName[i], j+1, 1, genes, expBins, expStrand, strandInconsistence);
+            st5 += (clock()-t5);
+            
+            
+            // Motif
+            motif = string(1,phuman->dna[i][j-1]) + string(1,phuman->dna[i][j]) + string(1,phuman->dna[i][j+1]);
+
+            // write results to map
+            itT = resultsT.find(CRTexpMapKey2(motif,RTbin,expbin,RTstrand,expStrand));
+            if(itT != resultsT.end())
+                itT->second++;
+            else
+                cerr << "Error: map key not found";
+
+        }
+        cout << "RT: " << st4 << "\nExpression: " << st5 << '\n';
+    }
+    
+    results2strandsT = resultsT;
+
+    for(itT=resultsT.begin();itT!=resultsT.end();itT++)
+    {
+        cmotif = CDNA::cDNA(itT->first.motif);
+        opRTstrand = CReplicationTiming::oppositeStrand(itT->first.RTstrand);
+        opEXPstrand = CExpression::oppositeStrand(itT->first.senseStrand);
+        it2T = results2strandsT.find(CRTexpMapKey2(cmotif,itT->first.RTbin,itT->first.expbin,opRTstrand,opEXPstrand));
+        if(it2T != results2strandsT.end())
+            it2T->second += itT->second;
+        else
+            cerr << "Error: map key not found";
+    }
+
+    path = dirpath + "/RTEXP_TRG_" + sample + ".txt";
+    f.open(path.c_str());
+    for(itT=results2strandsT.begin();itT!=results2strandsT.end();itT++)
+        f << itT->first.motif << '\t' << itT->first.RTbin << '\t' << itT->first.RTstrand << '\t' << itT->first.expbin << '\t' << itT->first.senseStrand << '\t' << itT->second << '\n';
+    f.close();
+    
+    t3 = clock();
+    
+    cout << "Mutations: " << t2 - t1 << "\n";
+    cout << "Targets: " << t3 - t2 << "\n";
+    
 }

@@ -18,7 +18,8 @@ CMutation::CMutation(string cancer_,
                      string chr_,
                      string pos_,
                      string refallele_,
-                     string varallele_)
+                     string varallele_,
+                     char isForwardStrand_)
 {
     cancer_.copy(cancer,STRLEN_CANCER);
     cancer[STRLEN_CANCER] = '\0';
@@ -30,11 +31,12 @@ CMutation::CMutation(string cancer_,
     pos = str2ul(pos_.c_str());
     refallele = refallele_;
     varallele = varallele_;
+    isForwardStrand = isForwardStrand_;
 }
 
-
-void CMutations::LoadMutations(string path, int isHeader)
+void CMutations::LoadMutations(string path, int isHeader, vector<string> onlyCancers, vector<string> onlySamples, int onlySubs, CHumanGenome* phuman)
 {
+    vector<string> flds;
     string line;
     clock_t c1,c2;
     
@@ -52,7 +54,12 @@ void CMutations::LoadMutations(string path, int isHeader)
         getline(f, line);
         if(f.eof())
             break;
-        mutationsCnt ++;
+        flds = split(line);
+        if ((onlyCancers.empty() || find(onlyCancers.begin(),onlyCancers.end(),flds[1]) != onlyCancers.end()) &&
+            (phuman==NULL || phuman->GetChrNum(flds[2]) != -1) &&
+            (onlySamples.empty() || find(onlySamples.begin(),onlySamples.end(),flds[0]) != onlySamples.end()) &&
+            (onlySubs != 1 || flds[4].size() == flds[5].size()))
+            mutationsCnt++;
     }
     f.clear();
     f.seekg(0, ios::beg);
@@ -70,15 +77,17 @@ void CMutations::LoadMutations(string path, int isHeader)
     
     printf("Mutations loading ...\n");
     int i=0;
-    vector<string> flds;
     c1 = clock();
+    flds.clear();
     while(getline(f, line))
     {
         if (line.length() != 0)
         {
             flds = split(line);
-
-            mutations.push_back(CMutation(flds[1],flds[0],flds[2],flds[3],flds[4],flds[5]));
+            if ((onlyCancers.empty() || find(onlyCancers.begin(),onlyCancers.end(),flds[1]) != onlyCancers.end()) && (phuman==NULL || phuman->GetChrNum(flds[2]) != -1) &&
+                (onlySamples.empty() || find(onlySamples.begin(),onlySamples.end(),flds[0]) != onlySamples.end()) &&
+                (onlySubs != 1 || flds[4].size() == flds[5].size()))
+                mutations.push_back(CMutation(flds[1],flds[0],flds[2],flds[3],flds[4],flds[5],1));
             i++;
         }
     }

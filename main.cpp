@@ -17,7 +17,7 @@
 
 int main(int argc, const char * argv[]) {
     
-    /*
+    
     time_t t;
     tm* now;
     
@@ -26,6 +26,7 @@ int main(int argc, const char * argv[]) {
     now = localtime(&t);
     cout << (now->tm_year + 1900) << '-' << (now->tm_mon + 1) << '-' <<  now->tm_mday << ' ' << now->tm_hour << ":" << now->tm_min << ":" << now->tm_sec << "\n";
     
+    /*
     CHumanGenome human;
     human.InitializeHuman("37", HUMAN_PATH, ".fa", "FASTA");
     
@@ -36,12 +37,18 @@ int main(int argc, const char * argv[]) {
     CSignatureAnalysis a;
     a.CalculateExpressionAllMotifs(m, "MOTIFS_EXP/ALLMUTS_in_EXPbins", &human, argv[1], argv[2]);
     a.CalculateTargetsinExpBinAllMotifs("MOTIFS_EXP/ALLMOTIFS_in_EXPbins", &human, argv[1], argv[2]);
+    */
+ 
+    
+    CAllMotifs c;
+    c.AnalysisRTExp("/Users/mar/BIO/PROJECTS/APOBEC/Project1_TranscriptionLevel/Results_CPP/ALL",argv[1],argv[2]);
     
     // End date/time
     t = time(0);
     now = localtime(&t);
     cout << (now->tm_year + 1900) << '-' << (now->tm_mon + 1) << '-' <<  now->tm_mday << ' ' << now->tm_hour << ":" << now->tm_min << ":" << now->tm_sec << "\n";
-*/
+
+    return 0;
     
     
     CAPOBEC a;

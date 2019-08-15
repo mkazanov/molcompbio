@@ -34,6 +34,13 @@ public:
 
         return(ret);
     }
+    static bool inACGT(char base)
+    {
+        if(base == 'A' || base == 'C' || base == 'G' || base == 'T')
+            return(true);
+        else
+            return(false);
+    }
 };
 
 class CDNAPos{

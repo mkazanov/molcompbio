@@ -17,7 +17,8 @@ using namespace std;
 class CAllMotifs{
 public:
     void GenerateMotifsFile(string path, int includeComplimentary = 0);
-    void RunAnalysis(string motif, string dirpath);
+    void AnalysisReplicationTiming(string motif, string dirpath);
+    void AnalysisRTExp(string dirpath, string cancer, string sample);
 };
 
 #endif /* allmotifs_hpp */

@@ -12,11 +12,10 @@
 #include "ghuman.hpp"
 #include <iostream>
 
-CHumanGene::CHumanGene(string chr_, string startpos_, string endpos_, string strand_, string info_)
+CHumanGene::CHumanGene(string startpos_, string endpos_, string strand_, string info_)
 {
     size_t pos1,pos2;
     
-    chrNum = CHumanGenome::GetChrNum(chr_.substr(3));
     startpos = str2ul(startpos_);
     endpos = str2ul(endpos_);
     strand = strand_[0];
@@ -34,17 +33,21 @@ CHumanGene::CHumanGene(string chr_, string startpos_, string endpos_, string str
     }
 }
 
-CHumanGene::CHumanGene(int chrNum_, unsigned long pos_)
+CHumanGene::CHumanGene(unsigned long pos_)
 {
-    chrNum = chrNum_;
     startpos = pos_;
 }
 
-CHumanGene::CHumanGene(int chrNum_, unsigned long startpos_, unsigned long endpos_)
+CHumanGene::CHumanGene(unsigned long startpos_, unsigned long endpos_)
 {
-    chrNum = chrNum_;
     startpos = startpos_;
     endpos = endpos_;
+}
+
+CHumanGenes::CHumanGenes()
+{
+    genes = new set<CHumanGene>[24];
+    genebits = new bitset<250000000>[24];
 }
 
 void CHumanGenes::LoadGenes(string path)
@@ -74,7 +77,7 @@ void CHumanGenes::LoadGenes(string path)
             chrNum = CHumanGenome::GetChrFromNCBIName(flds[0]);
             if(chrNum < 0 || chrNum > 23)
                 continue;
-            genes.insert(CHumanGene(flds[0],flds[3],flds[4],flds[6],flds[8]));
+            genes[chrNum].insert(CHumanGene(flds[3],flds[4],flds[6],flds[8]));
         }
     }
     
@@ -84,41 +87,49 @@ void CHumanGenes::LoadGenes(string path)
 void CHumanGenes::PrepareForSearch()
 {
     set<CHumanGene>::iterator it;
-    int prevchr;
     unsigned long maxend;
+    int chrNum;
 
-    prevchr = -1;
-    maxend = 0;
-    for(it=genes.begin();it!=genes.end();++it)
+    // set maxpos
+    for(chrNum=0;chrNum<24;chrNum++)
     {
-        if(prevchr != (*it).chrNum)
-        {
-            (*it).maxendpos = 0;
-            maxend = (*it).endpos;
-        }
-        else
+        maxend = 0;
+        for(it=genes[chrNum].begin();it!=genes[chrNum].end();++it)
         {
             (*it).maxendpos = (maxend < (*it).startpos) ? 0 : maxend;
             maxend = (maxend > (*it).endpos) ? maxend : (*it).endpos;
         }
-        prevchr = (*it).chrNum;
+    }
+    
+    // set bits
+    unsigned long i;
+    for(chrNum=0;chrNum<24;chrNum++)
+    {
+        for(it=genes[chrNum].begin();it!=genes[chrNum].end();++it)
+        {
+            for(i=it->startpos;i<=it->endpos;i++)
+                genebits[chrNum][i-1] = 1;
+        }
     }
 }
 
 int CHumanGenes::GetGenesByPos(int chrNum, unsigned long pos, vector<CHumanGene>& geneList)
 {
     set<CHumanGene>::iterator it;
-    CHumanGene g(chrNum,pos);
+    CHumanGene g(pos);
 
-    it = genes.upper_bound(g);
-    if(it == genes.begin())
+    if(genebits[chrNum][pos-1] != 1)
+        return(0);
+    
+    it = genes[chrNum].upper_bound(g);
+    if(it == genes[chrNum].begin())
         return(0);
     it--;
     while(1)
     {
-        if((*it).chrNum == chrNum && (*it).startpos <= pos && (*it).endpos >= pos)
+        if((*it).startpos <= pos && (*it).endpos >= pos)
             geneList.push_back((*it));
-        if((*it).chrNum != chrNum || pos > (*it).maxendpos)
+        if(pos > (*it).maxendpos)
             break;
         it--;
     }
@@ -129,7 +140,7 @@ int CHumanGenes::GetGenesByPos(int chrNum, unsigned long pos, vector<CHumanGene>
         return(1);
 }
 
-void CHumanGenes::MergeIntervals(vector<CHumanGene>& ret)
+/*void CHumanGenes::MergeIntervals(vector<CHumanGene>& ret)
 {
     set<CHumanGene>::iterator si;
     CHumanGene prevGene(-1,0);
@@ -151,16 +162,18 @@ void CHumanGenes::MergeIntervals(vector<CHumanGene>& ret)
         prevGene = (*si);
     }
     ret.push_back(CHumanGene(prevGene.chrNum,startpos,endpos));
-}
+}*/
 
 void CHumanGenes::SaveToFile(string path)
 {
     ofstream f;
     f.open(path.c_str());
     set<CHumanGene>::iterator it;
+    int chrNum;
     
-    for(it=genes.begin();it!=genes.end();++it)
-        f << (*it).chrNum << '\t' << (*it).startpos << '\t' << (*it).endpos << '\t' << (*it).maxendpos << '\t' << (*it).strand << '\t' << (*it).geneID << '\t' << (*it).geneName << '\n';
+    for(chrNum=0;chrNum<24;chrNum++)
+        for(it=genes[chrNum].begin();it!=genes[chrNum].end();++it)
+            f << chrNum << '\t' << (*it).startpos << '\t' << (*it).endpos << '\t' << (*it).maxendpos << '\t' << (*it).strand << '\t' << (*it).geneID << '\t' << (*it).geneName << '\n';
     
     f.close();
 }

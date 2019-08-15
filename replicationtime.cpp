@@ -18,23 +18,21 @@
 #include "mutsignature.hpp"
 #include <cstring>
 
-CReplicationTime::CReplicationTime(string chr_, string startpos_, string endpos_, string RTvalue_)
+CReplicationTime::CReplicationTime(string startpos_, string endpos_, string RTvalue_)
 {
-    chrNum = CHumanGenome::GetChrNum(chr_.substr(3));
     startpos = str2ul(startpos_);
     endpos = str2ul(endpos_);
     RTvalue = str2d(RTvalue_);
 }
 
-CReplicationTime::CReplicationTime(int chrNum_, unsigned long pos_)
+CReplicationTime::CReplicationTime(unsigned long pos_)
 {
-    chrNum = chrNum_;
     startpos = pos_;
 }
 
 bool CReplicationTime::isRTnull()
 {
-    if(chrNum == CHR_NULL)
+    if(startpos == -1)
         return true;
     else
         return false;
@@ -47,10 +45,16 @@ CRTBin::CRTBin(int binNum_, double RTleft_, double RTright_)
     RTright = RTright_;
 }
 
+CReplicationTiming::CReplicationTiming()
+{
+    RTs = new set<CReplicationTime>[24];
+}
+
 void CReplicationTiming::LoadReplicationTiming(string path, int isHeader)
 {
     string line;
     clock_t c1,c2;
+    int chrNum;
     
     ifstream f(path.c_str());
     if (!f.is_open())
@@ -71,12 +75,13 @@ void CReplicationTiming::LoadReplicationTiming(string path, int isHeader)
         if (line.length() != 0)
         {
             flds = split(line);
-            RTs.insert(CReplicationTime(flds[0],flds[1],flds[2],flds[3]));
+            chrNum = CHumanGenome::GetChrNum(flds[0].substr(3));
+            RTs[chrNum].insert(CReplicationTime(flds[1],flds[2],flds[3]));
             i++;
         }
     }
     c2 = clock();
-    printf("Replication timing %i intervals have been loaded\n", (int)RTs.size());
+    printf("Replication timing intervals have been loaded\n");
     printf("Executing time: %lu \n", c2 - c1);
 }
 
@@ -84,15 +89,15 @@ int CReplicationTiming::GetRT(int chrNum, unsigned long pos, double& RTvalue)
 {
     set<CReplicationTime>::iterator it;
 
-    CReplicationTime rt(chrNum, pos);
-    it = RTs.upper_bound(rt);
-    if(it == RTs.begin())
+    CReplicationTime rt(pos);
+    it = RTs[chrNum].upper_bound(rt);
+    if(it == RTs[chrNum].begin())
     {
         RTvalue = RT_NULL;
         return(0);
     }
     it--;
-    if(it != RTs.end() && it->chrNum == chrNum && pos >= it->startpos && pos <= it->endpos)
+    if(it != RTs[chrNum].end() && pos >= it->startpos && pos <= it->endpos)
     {
         RTvalue = it->RTvalue;
         return (1);
@@ -108,12 +113,12 @@ int CReplicationTiming::GetRT(int chrNum, unsigned long pos, CReplicationTime& r
 {
     set<CReplicationTime>::iterator it;
     
-    CReplicationTime rtquery(chrNum, pos);
-    it = RTs.upper_bound(rtquery);
-    if(it == RTs.begin())
+    CReplicationTime rtquery(pos);
+    it = RTs[chrNum].upper_bound(rtquery);
+    if(it == RTs[chrNum].begin())
         return(0);
     it--;
-    if(it != RTs.end() && it->chrNum == chrNum && pos >= it->startpos && pos <= it->endpos)
+    if(it != RTs[chrNum].end() && pos >= it->startpos && pos <= it->endpos)
     {
         rt = (*it);
         return (1);
@@ -149,29 +154,31 @@ int CReplicationTiming::GetRTBin(int chrNum, unsigned long pos, vector<CRTBin> b
 void CReplicationTiming::ReplicationStrand()
 {
     set<CReplicationTime>::iterator it,previt,nextit;
+    int chrNum;
     
-    for(it=RTs.begin();it!=RTs.end();++it)
-    {
-        //cout << it->RTvalue << '\n';
-        if(it != RTs.begin())
+    for(chrNum=0;chrNum<24;chrNum++)
+        for(it=RTs[chrNum].begin();it!=RTs[chrNum].end();++it)
         {
-            previt = it;
-            previt--;
-        }
-        nextit = it;
-        nextit++;
-        if(it == RTs.begin() || previt->chrNum != it->chrNum || nextit->chrNum != it->chrNum)
-            it->isForward = -1;
-        else
-        {
-            if(nextit->RTvalue - previt->RTvalue > 0)
-                it->isForward = 0;
-            else if(nextit->RTvalue - previt->RTvalue < 0)
-                it->isForward = 1;
-            else
+            //cout << it->RTvalue << '\n';
+            if(it != RTs[chrNum].begin())
+            {
+                previt = it;
+                previt--;
+            }
+            nextit = it;
+            nextit++;
+            if(it == RTs[chrNum].begin())
                 it->isForward = -1;
+            else
+            {
+                if(nextit->RTvalue - previt->RTvalue > 0)
+                    it->isForward = 0;
+                else if(nextit->RTvalue - previt->RTvalue < 0)
+                    it->isForward = 1;
+                else
+                    it->isForward = -1;
+            }
         }
-    }
 }
 
 void CReplicationTiming::SaveToFile(string path)
@@ -180,8 +187,9 @@ void CReplicationTiming::SaveToFile(string path)
     f.open(path.c_str());
     set<CReplicationTime>::iterator it;
 
-    for(it=RTs.begin();it!=RTs.end();++it)
-        f << (*it).chrNum << '\t' << (*it).startpos << '\t' << (*it).endpos << '\t' << (*it).RTvalue << '\t' << (*it).isForward << '\n';
+    for(int chrNum=0;chrNum<24;chrNum++)
+        for(it=RTs[chrNum].begin();it!=RTs[chrNum].end();++it)
+            f << chrNum << '\t' << (*it).startpos << '\t' << (*it).endpos << '\t' << (*it).RTvalue << '\t' << (*it).isForward << '\n';
         
     f.close();
 }

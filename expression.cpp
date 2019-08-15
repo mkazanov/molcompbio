@@ -33,12 +33,12 @@ CExpressionBin::CExpressionBin(int binNum_, double expressionLeft_, double expre
 }
 
 
-void CExpression::LoadExpression(string path)
+void CExpression::LoadExpression(string path, string sample)
 {
     cout << "Load expression" << '\n';
     
     string line;
-    string geneId,sample;
+    string geneId,smpl;
     
     ifstream f(path.c_str());
     if (!f.is_open())
@@ -53,10 +53,15 @@ void CExpression::LoadExpression(string path)
         if (line.length() != 0)
         {
             flds = split(line);
+            smpl = flds[1].substr(0,16);
+            if(sample != "" && smpl != sample)
+                continue;
             flds1 = splitd(flds[0],'|');
             geneId = flds1[1];
-            sample = flds[1].substr(0,16);
-            data.insert(pair<CExpressionKey,double>(CExpressionKey(geneId,sample),str2d(flds[2])));
+            if(sample == "")
+                data.insert(pair<CExpressionKey,double>(CExpressionKey(geneId,sample),str2d(flds[2])));
+            else
+                dataSample[str2ul(geneId)] = str2d(flds[2]);
         }
     }
 }
@@ -64,17 +69,40 @@ void CExpression::LoadExpression(string path)
 int CExpression::GetExpression(unsigned long geneId, string sample, double& expressionValue)
 {
     unordered_map<CExpressionKey,double,hash_pair>::iterator it;
+    unordered_map<unsigned long,double>::iterator its;
     
-    it = data.find(CExpressionKey(geneId,sample));
-    if(it == data.end())
+    if(!data.empty())
     {
-        expressionValue = -1;
-        return(0);
+        it = data.find(CExpressionKey(geneId,sample));
+        if(it == data.end())
+        {
+            expressionValue = -1;
+            return(0);
+        }
+        else
+        {
+            expressionValue = it->second;
+            return(1);
+        }
+    }
+    else if (!dataSample.empty())
+    {
+        its = dataSample.find(geneId);
+        if(its == dataSample.end())
+        {
+            expressionValue = -1;
+            return(0);
+        }
+        else
+        {
+            expressionValue = its->second;
+            return(1);
+        }
     }
     else
     {
-        expressionValue = it->second;
-        return(1);
+        cerr << "Error: expression data is empty!" << '\n';
+        return(0);
     }
 }
 
@@ -99,13 +127,13 @@ int CExpression::GetExpressionBin(string sample, string chr, unsigned long pos, 
     
     if(geneList.empty())
     {
-        strand = -1;
+        strand = EXP_STRAND_NULL;
         strandInconsistence = 0;
         return(EXP_NULLBIN_NOTINGENES); // mutation not in genes
     }
     maxexp = -100000.0;
     expFound = 0;
-    strand = -1;
+    strand = 0;
     for(int i=0;i<geneList.size();i++)
     {
         if((geneList[i].strand == '+' && isForwardMut == 1) || (geneList[i].strand == '-' && isForwardMut == 0))
@@ -119,11 +147,11 @@ int CExpression::GetExpressionBin(string sample, string chr, unsigned long pos, 
             {
                 maxexp = expValue;
                 if((geneList[i].strand == '+' && isForwardMut == 1) || (geneList[i].strand == '-' && isForwardMut == 0))
-                    strand = 1;
+                    strand = EXP_STRAND_PLUS;
                 else if((geneList[i].strand == '-' && isForwardMut == 1) || (geneList[i].strand == '+' && isForwardMut == 0))
-                    strand = 0;
+                    strand = EXP_STRAND_MINUS;
                 else
-                    strand = -1;
+                    strand = EXP_STRAND_NULL;
             }
             expFound = 1;
         }

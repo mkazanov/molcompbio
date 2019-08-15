@@ -27,21 +27,21 @@ using namespace std;
 
 class CReplicationTime {
 public:
-    int chrNum;
+    //int chrNum;
     unsigned long startpos;
     unsigned long endpos;
     double RTvalue;
     mutable short isForward;
-    CReplicationTime(string chr_, string startpos_, string endpos_, string RTvalue_);
-    CReplicationTime(int chrNum_, unsigned long pos_);
+    CReplicationTime(string startpos_, string endpos_, string RTvalue_);
+    CReplicationTime(unsigned long pos_);
     CReplicationTime(){};
     bool isRTnull();
     bool operator< (const CReplicationTime &right) const
     {
-        if (chrNum < right.chrNum)
+        if (startpos < right.startpos)
             return true;
-        else if (chrNum == right.chrNum)
-            return startpos < right.startpos;
+        else if (startpos == right.startpos)
+            return endpos < right.endpos;
         else
             return false;
     }
@@ -56,8 +56,9 @@ public:
 };
 
 class CReplicationTiming {
-    set<CReplicationTime> RTs;
+    set<CReplicationTime>* RTs;
 public:
+    CReplicationTiming();
     vector<CRTBin> bins;
     void LoadReplicationTiming(string path, int isHeader);
     int GetRT(int chrNum, unsigned long pos, double& RTvalue);
@@ -67,6 +68,15 @@ public:
     void ReplicationStrand();
     void SaveToFile(string path);
     int CalculateMotifinRTBins(set<string> motifs, string OUT_PATH, CHumanGenome* phuman_ = NULL);
+    static int oppositeStrand(int strand)
+    {
+        if(strand == STRAND_LAGGING)
+            return(STRAND_LEADING);
+        else if(strand == STRAND_LEADING)
+            return(STRAND_LAGGING);
+        else
+            return(STRAND_NULL);
+    }
 };
 
 #endif /* replicationtime_hpp */
