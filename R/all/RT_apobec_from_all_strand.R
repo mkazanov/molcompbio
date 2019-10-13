@@ -2,8 +2,8 @@ library(data.table)
 library(ggplot2)
 library(reshape2)
 
-OUTPUT_DIR <- "/Users/mar/BIO/PROJECTS/APOBEC/Project1_TranscriptionLevel/ResultsFinalR"
-MOTIFS_DIR <- "/Users/mar/BIO/PROJECTS/APOBEC/Project1_TranscriptionLevel/Results_CPP/MOTIFS_RT/"
+OUTPUT_DIR <- "/Users/mar/BIO/PROJECTS/APOBEC/Project1_TranscriptionLevel/ResultsFinalRall"
+INPUT_DIR <- "/Users/mar/BIO/PROJECTS/APOBEC/Project1_TranscriptionLevel/Results_CPP/ALL/"
 
 cancerSamples <- read.csv("/Users/mar/BIO/PROJECTS/APOBEC/Project1_TranscriptionLevel/Results_CPP/samples.txt",sep='\t')
 cancerSamples <- data.table(cancerSamples)
@@ -18,12 +18,12 @@ cancers <- data.table("cancer"=unique(cancerSamples[,cancer]))
 
 # Create subdirs for cancer types
 
-dir.create(file.path(OUTPUT_DIR,'RTplotsStrand'))
+dir.create(file.path(OUTPUT_DIR,'RTStrand'))
 
 for(i in 1:nrow(cancers))
 {
   
-  dir.create(file.path(paste0(OUTPUT_DIR,'/RTplotsStrand'), cancers[i]$cancer))
+  dir.create(file.path(paste0(OUTPUT_DIR,'/RTStrand'), cancers[i]$cancer))
 }
 
 res <- data.frame()
@@ -35,84 +35,82 @@ for(i in 1:nrow(cancers))
   
   for (j in 1:nrow(samples))
   {
-    if("TCGA-BH-A0DT-01A" == samples[j]$sample){
-      a <- "lll"
-    }
-    
     enrichGordenin <- gordeninEnrichment[CANCER_TYPE == cancers[i]$cancer & SAMPLE == samples[j]$sample]  
     enrichChar <- paste0(gsub("\\.","_",round(enrichGordenin$APOBEC_ENRICHMENT,2)),"_")
 
-  results <- data.frame()  
+    results <- data.frame()  
     
-  for(m in c("TCT","TCA","TCC","TCG"))
-  {
-    tcxt <- read.csv(paste0(MOTIFS_DIR,m,"_T.txt"),sep='\t')
-    tcxt <- data.table(tcxt)
-    tcxt <- tcxt[Sample == samples[j]$sample & Cancer == cancers[i]$cancer]
-
-    tcxg <- read.csv(paste0(MOTIFS_DIR,m,"_G.txt"),sep='\t')
-    tcxg <- data.table(tcxg)
-    tcxg <- tcxg[Sample == samples[j]$sample & Cancer == cancers[i]$cancer]
+    dataMut <- read.csv(paste0(INPUT_DIR,"RTEXP_MUT_",samples[j]$sample,".txt"), sep='\t', header=FALSE)
+    dataMut <- data.table(dataMut)
+    setnames(dataMut,c("Motif","RTbin","RTstrand","expbin","senseStrand","mutAllele","MutationCnt"))
+  
+    dataTrg <- read.csv(paste0(INPUT_DIR,"RTEXP_TRG_",samples[j]$sample,".txt"),sep="\t", header=FALSE)
+    dataTrg <- data.table(dataTrg)
+    setnames(dataTrg,c("Motif","RTbin","RTstrand","expbin","senseStrand","TargetCnt"))
+  
+    for(m in c("TCT","TCA","TCC","TCG"))
+    {
+      tcx <- dataMut[Motif == m & mutAllele %in% c("T","G")]
+      tcx[,LeadingCnt:=ifelse(RTstrand==1,MutationCnt,0)]
+      tcx[,LaggingCnt:=ifelse(RTstrand==0,MutationCnt,0)]
     
-    tmp <- rbind(tcxt,tcxg)
-    
-    dt <- tmp[,.("MutationCnt"=sum(MutationCnt),
-                 "LeadingCnt"=sum(LeadingCnt),
+      dt <- tcx[,.("MutationCnt"=sum(MutationCnt),
+                  "LeadingCnt"=sum(LeadingCnt),
                  "LaggingCnt"=sum(LaggingCnt)),
-              by=.(Cancer,Sample,ReplicationBin)]
-    dt <- dt[ReplicationBin %in% c(0,1,2,3,4,5,6)]
-    leading <- dt[,sum(LeadingCnt)]
-    lagging <- dt[,sum(LaggingCnt)]
-    ratio <- lagging/leading
+              by=.(RTbin)]
+      dt <- dt[RTbin %in% c(0,1,2,3,4,5,6)]
+     leading <- dt[,sum(LeadingCnt)]
+      lagging <- dt[,sum(LaggingCnt)]
+      ratio <- lagging/leading
     
-    leading0 <- dt[ReplicationBin == 0,LeadingCnt]
-    if(length(leading0) == 0) {leading0 <- NA}
-    lagging0 <- dt[ReplicationBin == 0,LaggingCnt]
-    if(length(lagging0) == 0) {lagging0 <- NA}
-    ratio0 <- lagging0/leading0
-    if(length(ratio0) == 0){ratio0 <- NA}
+     leading0 <- dt[RTbin == 0,LeadingCnt]
+     if(length(leading0) == 0) {leading0 <- NA}
+      lagging0 <- dt[RTbin == 0,LaggingCnt]
+      if(length(lagging0) == 0) {lagging0 <- NA}
+      ratio0 <- lagging0/leading0
+      if(length(ratio0) == 0){ratio0 <- NA}
     
-    leading1 <- dt[ReplicationBin == 1,LeadingCnt]
-    if(length(leading1) == 0) {leading1 <- NA}
-    lagging1 <- dt[ReplicationBin == 1,LaggingCnt]
-    if(length(lagging1) == 0) {lagging1 <- NA}
-    ratio1 <- lagging1/leading1
-    if(length(ratio1) == 0){ratio1 <- NA}
+      leading1 <- dt[RTbin == 1,LeadingCnt]
+      if(length(leading1) == 0) {leading1 <- NA}
+      lagging1 <- dt[RTbin == 1,LaggingCnt]
+      if(length(lagging1) == 0) {lagging1 <- NA}
+      ratio1 <- lagging1/leading1
+      if(length(ratio1) == 0){ratio1 <- NA}
     
-    leading2 <- dt[ReplicationBin == 2,LeadingCnt]
-    if(length(leading2) == 0) {leading2 <- NA}
-    lagging2 <- dt[ReplicationBin == 2,LaggingCnt]
-    if(length(lagging2) == 0) {lagging2 <- NA}
-    ratio2 <- lagging2/leading2
-    if(length(ratio2) == 0){ratio2 <- NA}
+      leading2 <- dt[RTbin == 2,LeadingCnt]
+      if(length(leading2) == 0) {leading2 <- NA}
+      lagging2 <- dt[RTbin == 2,LaggingCnt]
+      if(length(lagging2) == 0) {lagging2 <- NA}
+      ratio2 <- lagging2/leading2
+      if(length(ratio2) == 0){ratio2 <- NA}
     
-    leading3 <- dt[ReplicationBin == 3,LeadingCnt]
-    if(length(leading3) == 0) {leading3 <- NA}
-    lagging3 <- dt[ReplicationBin == 3,LaggingCnt]
-    if(length(lagging3) == 0) {lagging3 <- NA}
-    ratio3 <- lagging3/leading3
-    if(length(ratio3) == 0){ratio3 <- NA}
+      leading3 <- dt[RTbin == 3,LeadingCnt]
+      if(length(leading3) == 0) {leading3 <- NA}
+      lagging3 <- dt[RTbin == 3,LaggingCnt]
+      if(length(lagging3) == 0) {lagging3 <- NA}
+      ratio3 <- lagging3/leading3
+      if(length(ratio3) == 0){ratio3 <- NA}
     
-    leading4 <- dt[ReplicationBin == 4,LeadingCnt]
-    if(length(leading4) == 0) {leading4 <- NA}
-    lagging4 <- dt[ReplicationBin == 4,LaggingCnt]
-    if(length(lagging4) == 0) {lagging4 <- NA}
-    ratio4 <- lagging4/leading4
-    if(length(ratio4) == 0){ratio4 <- NA}
+      leading4 <- dt[RTbin == 4,LeadingCnt]
+      if(length(leading4) == 0) {leading4 <- NA}
+      lagging4 <- dt[RTbin == 4,LaggingCnt]
+      if(length(lagging4) == 0) {lagging4 <- NA}
+      ratio4 <- lagging4/leading4
+      if(length(ratio4) == 0){ratio4 <- NA}
     
-    leading5 <- dt[ReplicationBin == 5,LeadingCnt]
-    if(length(leading5) == 0) {leading5 <- NA}
-    lagging5 <- dt[ReplicationBin == 5,LaggingCnt]
-    if(length(lagging5) == 0) {lagging5 <- NA}
-    ratio5 <- lagging5/leading5
-    if(length(ratio5) == 0){ratio5 <- NA}
+      leading5 <- dt[RTbin == 5,LeadingCnt]
+      if(length(leading5) == 0) {leading5 <- NA}
+      lagging5 <- dt[RTbin == 5,LaggingCnt]
+      if(length(lagging5) == 0) {lagging5 <- NA}
+      ratio5 <- lagging5/leading5
+      if(length(ratio5) == 0){ratio5 <- NA}
     
-    leading6 <- dt[ReplicationBin == 6,LeadingCnt]
-    if(length(leading6) == 0) {leading6 <- NA}
-    lagging6 <- dt[ReplicationBin == 6,LaggingCnt]
-    if(length(lagging6) == 0) {lagging6 <- NA}
-    ratio6 <- lagging6/leading6
-    if(length(ratio6) == 0){ ratio6 <- NA}
+      leading6 <- dt[RTbin == 6,LeadingCnt]
+      if(length(leading6) == 0) {leading6 <- NA}
+      lagging6 <- dt[RTbin == 6,LaggingCnt]
+      if(length(lagging6) == 0) {lagging6 <- NA}
+      ratio6 <- lagging6/leading6
+      if(length(ratio6) == 0){ ratio6 <- NA}
     
    # p <- ggplot(dt1, aes(x=ReplicationBin, y=NormalizedDensity)) + 
     #  geom_bar(stat="identity") +
@@ -155,74 +153,70 @@ for(i in 1:nrow(cancers))
   
    resultsAll <- data.frame()  
      
+   C2motifList <- c("ACA","ACC","ACG","GCT","CCT","ACT","CCA","CCG","GCA","GCG","GCC","CCC")
+   
    # All other triplets with middle C
-   for(m in c("ACA","ACC","ACG","GCT","CCT","ACT","CCA","CCG","GCA","GCG","GCC","CCC")) 
+   for(m in C2motifList) 
    {
-     xt <- read.csv(paste0(MOTIFS_DIR,m,"_T.txt"),sep='\t')
-     xt <- data.table(xt)
-     xt <- xt[Sample == samples[j]$sample & Cancer == cancers[i]$cancer]
+     xt <- dataMut[Motif == m & mutAllele %in% c("T","G")]
+     xt[,LeadingCnt:=ifelse(RTstrand==1,MutationCnt,0)]
+     xt[,LaggingCnt:=ifelse(RTstrand==0,MutationCnt,0)]
      
-     xg <- read.csv(paste0(MOTIFS_DIR,m,"_G.txt"),sep='\t')
-     xg <- data.table(xg)
-     xg <- xg[Sample == samples[j]$sample & Cancer == cancers[i]$cancer]
-     
-     tmp <- rbind(xt,xg)
-     
-     dt <- tmp[,.("MutationCnt"=sum(MutationCnt),
+     dt <- xt[,.("MutationCnt"=sum(MutationCnt),
                   "LeadingCnt"=sum(LeadingCnt),
                   "LaggingCnt"=sum(LaggingCnt)),
-               by=.(Cancer,Sample,ReplicationBin)]
-     dt <- dt[ReplicationBin %in% c(0,1,2,3,4,5,6)]
+               by=.(RTbin)]
+     dt <- dt[RTbin %in% c(0,1,2,3,4,5,6)]
      
      leading <- dt[,sum(LeadingCnt)]
      lagging <- dt[,sum(LaggingCnt)]
      ratio <- lagging/leading
 
-     leading0 <- dt[ReplicationBin == 0,LeadingCnt]
+     leading0 <- dt[RTbin == 0,LeadingCnt]
      if(length(leading0) == 0) {leading0 <- NA}
-     lagging0 <- dt[ReplicationBin == 0,LaggingCnt]
+     lagging0 <- dt[RTbin == 0,LaggingCnt]
      if(length(lagging0) == 0) {lagging0 <- NA}
      ratio0 <- lagging0/leading0
      if(length(ratio0) == 0){ratio0 <- NA}
      
-     leading1 <- dt[ReplicationBin == 1,LeadingCnt]
+     leading1 <- dt[RTbin == 1,LeadingCnt]
      if(length(leading1) == 0) {leading1 <- NA}
-     lagging1 <- dt[ReplicationBin == 1,LaggingCnt]
+     lagging1 <- dt[RTbin == 1,LaggingCnt]
      if(length(lagging1) == 0) {lagging1 <- NA}
      ratio1 <- lagging1/leading1
      if(length(ratio1) == 0){ratio1 <- NA}
      
-     leading2 <- dt[ReplicationBin == 2,LeadingCnt]
+     leading2 <- dt[RTbin == 2,LeadingCnt]
      if(length(leading2) == 0) {leading2 <- NA}
-     lagging2 <- dt[ReplicationBin == 2,LaggingCnt]
+     lagging2 <- dt[RTbin == 2,LaggingCnt]
      if(length(lagging2) == 0) {lagging2 <- NA}
      ratio2 <- lagging2/leading2
      if(length(ratio2) == 0){ratio2 <- NA}
      
-     leading3 <- dt[ReplicationBin == 3,LeadingCnt]
+     leading3 <- dt[RTbin == 3,LeadingCnt]
      if(length(leading3) == 0) {leading3 <- NA}
-     lagging3 <- dt[ReplicationBin == 3,LaggingCnt]
+     lagging3 <- dt[RTbin == 3,LaggingCnt]
      if(length(lagging3) == 0) {lagging3 <- NA}
      ratio3 <- lagging3/leading3
      if(length(ratio3) == 0){ratio3 <- NA}
      
-     leading4 <- dt[ReplicationBin == 4,LeadingCnt]
+     leading4 <- dt[RTbin == 4,LeadingCnt]
      if(length(leading4) == 0) {leading4 <- NA}
-     lagging4 <- dt[ReplicationBin == 4,LaggingCnt]
+     lagging4 <- dt[RTbin == 4,LaggingCnt]
      if(length(lagging4) == 0) {lagging4 <- NA}
      ratio4 <- lagging4/leading4
      if(length(ratio4) == 0){ratio4 <- NA}
      
-     leading5 <- dt[ReplicationBin == 5,LeadingCnt]
+     leading5 <- dt[RTbin == 5,LeadingCnt]
      if(length(leading5) == 0) {leading5 <- NA}
-     lagging5 <- dt[ReplicationBin == 5,LaggingCnt]
+     lagging5 <- dt[RTbin == 5,LaggingCnt]
      if(length(lagging5) == 0) {lagging5 <- NA}
      ratio5 <- lagging5/leading5
      if(length(ratio5) == 0){ratio5 <- NA}
      
-     leading6 <- dt[ReplicationBin == 6,LeadingCnt]
+     leading6 <- dt[RTbin == 6,LeadingCnt]
      if(length(leading6) == 0) {leading6 <- NA}
-     lagging6 <- dt[ReplicationBin == 6,LaggingCnt]
+     lagging6 <- dt[RTbin == 6,LaggingCnt]
      if(length(lagging6) == 0) {lagging6 <- NA}
      ratio6 <- lagging6/leading6
      if(length(ratio6) == 0){ ratio6 <- NA}
@@ -396,5 +390,5 @@ for(i in 1:nrow(cancers))
   }
 }
 
-write.csv(res,paste0(OUTPUT_DIR,"/RTplotsStrand/coefsFinalStrand.csv"))
+write.csv(res,paste0(OUTPUT_DIR,"/RTStrand/coefsFinalStrand.csv"))
 
