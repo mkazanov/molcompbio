@@ -21,12 +21,17 @@ CMutation::CMutation(string cancer_,
                      string varallele_,
                      char isForwardStrand_)
 {
+    size_t chrpos;
+    
     cancer_.copy(cancer,STRLEN_CANCER);
     cancer[STRLEN_CANCER] = '\0';
     sample_.copy(sample,STRLEN_SAMPLE);
     sample[STRLEN_SAMPLE] = '\0';
     for(int i=0;i<(STRLEN_CHR+1);i++)
         chr[i] = '\0';
+    chrpos = chr_.find("chr");
+    if(chrpos != string::npos && chrpos == 0)
+        chr_ = chr_.substr(3);
     chr_.copy(chr,chr_.length());
     pos = str2ul(pos_.c_str());
     refallele = refallele_;
@@ -177,6 +182,21 @@ void CMutations::SaveToFile(string path)
     
     f.close();
 }
+
+void CMutations::SaveToFileRTExp(string path)
+{
+    ofstream f;
+    f.open(path.c_str());
+    int i;
+    
+    for(i=0;i<mutations.size();i++)
+        f << string(mutations[i].cancer) << '\t' << string(mutations[i].sample) << '\t' <<
+        string(mutations[i].chr) << '\t' << ul2str(mutations[i].pos) << '\t' << mutations[i].refallele <<
+        '\t' << mutations[i].varallele << '\t' << (int) mutations[i].isForwardStrand << '\t' << i2str(mutations[i].RTbin) << '\t' << i2str(mutations[i].RTstrand) << '\t' << i2str(mutations[i].EXPbin) << '\t' << i2str(mutations[i].EXPstrand) << '\n';
+    
+    f.close();
+}
+
 
 void CMutations::GetUniqueCancersSamples()
 {

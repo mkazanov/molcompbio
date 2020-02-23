@@ -194,6 +194,26 @@ void CReplicationTiming::SaveToFile(string path)
     f.close();
 }
 
+void CReplicationTiming::GetRTBinStrand(map<string,CReplicationTiming*> rtmap,const CMutation& mut, int& bin, int& strand)
+{
+    int res;
+    CReplicationTime rt;
+    
+    res = rtmap[string(mut.cancer)]->GetRT(CHumanGenome::GetChrNum(string(mut.chr)), mut.pos, rt);
+    if(res)
+        bin = rtmap[string(mut.cancer)]->GetRTBin(rt.RTvalue, (rtmap[string(mut.cancer)]->bins));
+    else
+        bin = RT_NULLBIN_NOVALUE;
+    
+    if((mut.isForwardStrand == 1 && rt.isForward == 1) || (mut.isForwardStrand == 0 && rt.isForward == 0))
+        strand = STRAND_LAGGING;
+    else if((mut.isForwardStrand == 1 && rt.isForward == 0) || (mut.isForwardStrand == 0 && rt.isForward == 1))
+        strand = STRAND_LEADING;
+    else
+        strand = STRAND_NULL;
+
+}
+
 int CReplicationTiming::CalculateMotifinRTBins(set<string> motifs, string OUT_PATH, CHumanGenome* phuman)
 {
     CMutationSignature msobj;

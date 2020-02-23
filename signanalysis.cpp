@@ -91,7 +91,7 @@ void CSignatureAnalysis:: ClassifyMutations(CHumanGenome* phuman_)
     cancers.insert("LUAD");
     cancers.insert("LUSC");
     m.FilterMutations(signatureMuts,signatures,(*phuman),cancers,samples,&otherMuts);
-    signatureMuts.SaveToFile("/Users/mar/63/mutations_apobec.tsv");
+    signatureMuts.SaveToFile("/Users/mar/BIO/BIODATA/CancerMutations/Fredriksson_et_al_2014/mutations_apobec.tsv");
     
     signatureMuts.GetUniqueCancersSamples();
     

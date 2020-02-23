@@ -21,6 +21,7 @@
 #include <set>
 #include "mutsignature.hpp"
 #include "ghuman.hpp"
+#include "mutation.hpp"
 #include <fstream>
 
 using namespace std;
@@ -78,6 +79,10 @@ public:
     string refallele;
     string varallele;
     char isForwardStrand;
+    int RTbin;
+    int RTstrand;
+    int EXPbin;
+    int EXPstrand;
     CMutation(string cancer_,
               string sample_,
               string chr_,
@@ -102,6 +107,7 @@ public:
     set<CCancerSample> cancerSample;
     void GetUniqueCancersSamples();
     void SaveToFile(string path);
+    void SaveToFileRTExp(string path);
 };
 
 #endif /* mutation_hpp */

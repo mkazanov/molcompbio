@@ -14,8 +14,12 @@
 #include <set>
 #include "mutation.hpp"
 #include "signanalysis.hpp"
+#include "CASEclusters.hpp"
 
 int main(int argc, const char * argv[]) {
+    
+    ProcessClusters();
+    return 0;
     
     
     time_t t;
@@ -26,10 +30,26 @@ int main(int argc, const char * argv[]) {
     now = localtime(&t);
     cout << (now->tm_year + 1900) << '-' << (now->tm_mon + 1) << '-' <<  now->tm_mday << ' ' << now->tm_hour << ":" << now->tm_min << ":" << now->tm_sec << "\n";
     
-    /*
+
     CHumanGenome human;
     human.InitializeHuman("37", HUMAN_PATH, ".fa", "FASTA");
     
+    CSignatureAnalysis a;
+    
+    a.signatures.push_back(CMutationSignature("TCA",2,"T"));
+    a.signatures.push_back(CMutationSignature("TCT",2,"T"));
+    a.signatures.push_back(CMutationSignature("TCA",2,"G"));
+    a.signatures.push_back(CMutationSignature("TCT",2,"G"));
+    a.signatures.push_back(CMutationSignature("TCC",2,"T"));
+    a.signatures.push_back(CMutationSignature("TCG",2,"T"));
+    a.signatures.push_back(CMutationSignature("TCC",2,"G"));
+    a.signatures.push_back(CMutationSignature("TCG",2,"G"));
+    
+    a.ClassifyMutations(&human);
+
+    return 0;
+    
+/*
     CMutations m;
     int isHeader = 1;
     m.LoadMutations(CANCER_MUTATIONS, isHeader);
@@ -41,7 +61,7 @@ int main(int argc, const char * argv[]) {
  
     
     CAllMotifs c;
-    c.AnalysisRTExp("/Users/mar/BIO/PROJECTS/APOBEC/Project1_TranscriptionLevel/Results_CPP/ALL",argv[1],argv[2]);
+    c.AnalysisRTExp(string(RESULTS_FOLDER)+"/ALL",argv[1],argv[2]);
     
     // End date/time
     t = time(0);
@@ -51,8 +71,8 @@ int main(int argc, const char * argv[]) {
     return 0;
     
     
-    CAPOBEC a;
-    a.RunAnalysis(argc, argv);
+    //CAPOBEC a;
+    //a.RunAnalysis(argc, argv);
     
     return 0;
 }

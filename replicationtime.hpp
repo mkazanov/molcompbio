@@ -11,7 +11,9 @@
 
 #include <set>
 #include <string>
+#include <map>
 #include "ghuman.hpp"
+#include "mutation.hpp"
 
 #define RT_NULL 999999
 #define RT_NULLBIN_NOVALUE -1
@@ -65,6 +67,7 @@ public:
     int GetRT(int chrNum, unsigned long pos, CReplicationTime& rtobj);
     int GetRTBin(double RTvalue, vector<CRTBin> bins);
     int GetRTBin(int chrNum, unsigned long pos, vector<CRTBin> bins);
+    void GetRTBinStrand(map<string,CReplicationTiming*> rtmap,const CMutation& mut, int& bin, int& strand);
     void ReplicationStrand();
     void SaveToFile(string path);
     int CalculateMotifinRTBins(set<string> motifs, string OUT_PATH, CHumanGenome* phuman_ = NULL);
