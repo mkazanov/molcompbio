@@ -48,7 +48,19 @@ for(i in 1:nrow(cancers))
   statSmoothVals <- cbind(statSmoothVals,data.table("Ratio"=pred[["fit"]]))
   
   ggsave(paste0(ROOT_DIR,"/",cancers[i]$cancer,"/",cancers[i]$cancer,"_nodiffRTstrand.jpg"), plot = p, device = "jpeg")
+
   
+  p <- ggplot(dtcur, aes(x=GordeninEnrichment, y=RatioDensity)) + 
+    geom_point() + stat_smooth() +
+    coord_cartesian(ylim = c(0, 1.5)) 
+  
+  model <- loess(RatioDensity ~ GordeninEnrichment, data = dtcur)
+  pred <- predict(model, newdata=seq(0.85,3.25,0.01) , se=TRUE)
+  statSmoothVals <- cbind(statSmoothVals,data.table("RatioDensity"=pred[["fit"]]))
+  
+  ggsave(paste0(ROOT_DIR,"/",cancers[i]$cancer,"/",cancers[i]$cancer,"_densRTstrand.jpg"), plot = p, device = "jpeg")
+  
+    
   # ratio0 and ratio diff0
   
   dtcur <- dt[Leading0 > 20 & Lagging0 > 20]
@@ -72,7 +84,19 @@ for(i in 1:nrow(cancers))
   statSmoothVals <- cbind(statSmoothVals,data.table("Ratio0"=pred[["fit"]]))
   
   ggsave(paste0(ROOT_DIR,"/",cancers[i]$cancer,"/",cancers[i]$cancer,"_nodiffRTstrandBin0.jpg"), plot = p, device = "jpeg")
+
+  p <- ggplot(dtcur, aes(x=GordeninEnrichment, y=RatioDensity0)) + 
+    geom_point() + stat_smooth() +
+    coord_cartesian(ylim = c(0, 1.5)) 
   
+  model <- loess(RatioDensity0 ~ GordeninEnrichment, data = dtcur)
+  pred <- predict(model, newdata=seq(0.85,3.25,0.01) , se=TRUE)
+  statSmoothVals <- cbind(statSmoothVals,data.table("RatioDensity0"=pred[["fit"]]))
+  
+  ggsave(paste0(ROOT_DIR,"/",cancers[i]$cancer,"/",cancers[i]$cancer,"_densRTstrandBin0.jpg"), plot = p, device = "jpeg")
+  
+  
+    
   # ratio1 and ratio diff1
   
   dtcur <- dt[Leading1 > 20 & Lagging1 > 20]
@@ -95,6 +119,16 @@ for(i in 1:nrow(cancers))
   statSmoothVals <- cbind(statSmoothVals,data.table("Ratio1"=pred[["fit"]]))
   
   ggsave(paste0(ROOT_DIR,"/",cancers[i]$cancer,"/",cancers[i]$cancer,"_nodiffRTstrandBin1.jpg"), plot = p, device = "jpeg")
+
+  p <- ggplot(dtcur, aes(x=GordeninEnrichment, y=RatioDensity1)) + 
+    geom_point() + stat_smooth() +
+    coord_cartesian(ylim = c(0, 1.5)) 
+  
+  model <- loess(RatioDensity1 ~ GordeninEnrichment, data = dtcur)
+  pred <- predict(model, newdata=seq(0.85,3.25,0.01) , se=TRUE)
+  statSmoothVals <- cbind(statSmoothVals,data.table("RatioDensity1"=pred[["fit"]]))
+  
+  ggsave(paste0(ROOT_DIR,"/",cancers[i]$cancer,"/",cancers[i]$cancer,"_densRTstrandBin1.jpg"), plot = p, device = "jpeg")
   
   # ratio2 and ratio diff2
 
@@ -118,6 +152,16 @@ for(i in 1:nrow(cancers))
   statSmoothVals <- cbind(statSmoothVals,data.table("Ratio2"=pred[["fit"]]))
   
   ggsave(paste0(ROOT_DIR,"/",cancers[i]$cancer,"/",cancers[i]$cancer,"_nodiffRTstrandBin2.jpg"), plot = p, device = "jpeg")
+
+  p <- ggplot(dtcur, aes(x=GordeninEnrichment, y=RatioDensity2)) + 
+    geom_point() + stat_smooth() +
+    coord_cartesian(ylim = c(0, 1.5)) 
+  
+  model <- loess(RatioDensity2 ~ GordeninEnrichment, data = dtcur)
+  pred <- predict(model, newdata=seq(0.85,3.25,0.01) , se=TRUE)
+  statSmoothVals <- cbind(statSmoothVals,data.table("RatioDensity2"=pred[["fit"]]))
+  
+  ggsave(paste0(ROOT_DIR,"/",cancers[i]$cancer,"/",cancers[i]$cancer,"_densRTstrandBin2.jpg"), plot = p, device = "jpeg")
   
   # ratio3 and ratio diff3
   
@@ -142,6 +186,17 @@ for(i in 1:nrow(cancers))
   
   ggsave(paste0(ROOT_DIR,"/",cancers[i]$cancer,"/",cancers[i]$cancer,"_nodiffRTstrandBin3.jpg"), plot = p, device = "jpeg")
   
+  p <- ggplot(dtcur, aes(x=GordeninEnrichment, y=RatioDensity3)) + 
+    geom_point() + stat_smooth() +
+    coord_cartesian(ylim = c(0, 1.5)) 
+  
+  model <- loess(RatioDensity3 ~ GordeninEnrichment, data = dtcur)
+  pred <- predict(model, newdata=seq(0.85,3.25,0.01) , se=TRUE)
+  statSmoothVals <- cbind(statSmoothVals,data.table("RatioDensity3"=pred[["fit"]]))
+  
+  ggsave(paste0(ROOT_DIR,"/",cancers[i]$cancer,"/",cancers[i]$cancer,"_densRTstrandBin3.jpg"), plot = p, device = "jpeg")
+  
+  
   # ratio4 and ratio diff4
   
   dtcur <- dt[Leading4 > 20 & Lagging4 > 20]
@@ -165,6 +220,16 @@ for(i in 1:nrow(cancers))
   
   ggsave(paste0(ROOT_DIR,"/",cancers[i]$cancer,"/",cancers[i]$cancer,"_nodiffRTstrandBin4.jpg"), plot = p, device = "jpeg")
   
+  p <- ggplot(dtcur, aes(x=GordeninEnrichment, y=RatioDensity4)) + 
+    geom_point() + stat_smooth() +
+    coord_cartesian(ylim = c(0, 1.5)) 
+  
+  model <- loess(RatioDensity4 ~ GordeninEnrichment, data = dtcur)
+  pred <- predict(model, newdata=seq(0.85,3.25,0.01) , se=TRUE)
+  statSmoothVals <- cbind(statSmoothVals,data.table("RatioDensity4"=pred[["fit"]]))
+  
+  ggsave(paste0(ROOT_DIR,"/",cancers[i]$cancer,"/",cancers[i]$cancer,"_densRTstrandBin4.jpg"), plot = p, device = "jpeg")
+  
   # ratio5 and ratio diff5
   
   dtcur <- dt[Leading5 > 20 & Lagging5 > 20]
@@ -187,6 +252,16 @@ for(i in 1:nrow(cancers))
   statSmoothVals <- cbind(statSmoothVals,data.table("Ratio5"=pred[["fit"]]))
   
   ggsave(paste0(ROOT_DIR,"/",cancers[i]$cancer,"/",cancers[i]$cancer,"_nodiffRTstrandBin5.jpg"), plot = p, device = "jpeg")
+
+  p <- ggplot(dtcur, aes(x=GordeninEnrichment, y=RatioDensity5)) + 
+    geom_point() + stat_smooth() +
+    coord_cartesian(ylim = c(0, 1.5)) 
+  
+  model <- loess(RatioDensity5 ~ GordeninEnrichment, data = dtcur)
+  pred <- predict(model, newdata=seq(0.85,3.25,0.01) , se=TRUE)
+  statSmoothVals <- cbind(statSmoothVals,data.table("RatioDensity5"=pred[["fit"]]))
+  
+  ggsave(paste0(ROOT_DIR,"/",cancers[i]$cancer,"/",cancers[i]$cancer,"_densRTstrandBin5.jpg"), plot = p, device = "jpeg")
   
   # ratio6 and ratio diff6
   
@@ -210,6 +285,16 @@ for(i in 1:nrow(cancers))
   statSmoothVals <- cbind(statSmoothVals,data.table("Ratio6"=pred[["fit"]]))
   
   ggsave(paste0(ROOT_DIR,"/",cancers[i]$cancer,"/",cancers[i]$cancer,"_nodiffRTstrandBin6.jpg"), plot = p, device = "jpeg")
+  
+  p <- ggplot(dtcur, aes(x=GordeninEnrichment, y=RatioDensity6)) + 
+    geom_point() + stat_smooth() +
+    coord_cartesian(ylim = c(0, 1.5)) 
+  
+  model <- loess(RatioDensity6 ~ GordeninEnrichment, data = dtcur)
+  pred <- predict(model, newdata=seq(0.85,3.25,0.01) , se=TRUE)
+  statSmoothVals <- cbind(statSmoothVals,data.table("RatioDensity6"=pred[["fit"]]))
+  
+  ggsave(paste0(ROOT_DIR,"/",cancers[i]$cancer,"/",cancers[i]$cancer,"_densRTstrandBin6.jpg"), plot = p, device = "jpeg")
   
   #
     
@@ -291,6 +376,35 @@ for(i in 1:nrow(cancers))
           panel.grid.minor = element_blank())
   
   ggsave(paste0(ROOT_DIR,"/",cancers[i]$cancer,"/",cancers[i]$cancer,"_nodiffRTstrandColorRange.jpg"), plot = p, device = "jpeg")
+  
+  dtrange <- dt[,.("cnt"=.N,
+                   "RatioDensity0"=mean(RatioDensity0),
+                   "RatioDensity1"=mean(RatioDensity1),
+                   "RatioDensity2"=mean(RatioDensity2),
+                   "RatioDensity3"=mean(RatioDensity3),
+                   "RatioDensity4"=mean(RatioDensity4),
+                   "RatioDensity5"=mean(RatioDensity5),
+                   "RatioDensity6"=mean(RatioDensity6)), by=EnrichmentRange]
+  
+  statMelt <- melt(dtrange,id.vars = c("EnrichmentRange","cnt"))
+  
+  p <- ggplot(statMelt,aes(x=EnrichmentRange, y=variable)) + 
+    geom_tile(aes(fill = log(value,2))) + 
+    geom_text(aes(label = round(log(value,2),3)), size = 2) +
+    scale_fill_gradient2(low="#dd1c77", high="#3182bd",limits=c(-1,1)) +
+    xlab("APOBEC enrichment") +
+    ylab("Replication timing") +
+    scale_y_discrete(labels = c("Late","","","","","","Early")) +
+    labs(fill = "") +
+    # labs(fill = "Lagging/leading strand mutations log ratio")
+    theme_bw() +
+    theme(axis.ticks.y = element_blank(),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank())
+  
+  ggsave(paste0(ROOT_DIR,"/",cancers[i]$cancer,"/",cancers[i]$cancer,"_densRTstrandColorRange.jpg"), plot = p, device = "jpeg")
+  
+  
   
   #dtrange[, cancer := cancers[i]$cancer]
   #dtranges <- rbind(dtranges,dtrange)

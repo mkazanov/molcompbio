@@ -145,9 +145,26 @@ for(i in 1:nrow(cancers))
     
     ret <- lm(NormalizedDensity ~ RTbin,dt1)
     
-    # All C2-based motifs together
+    # All C2-based motifs together to T and G
     
     xt <- dataMut[Motif %in% C2motifList & mutAllele %in% c("T","G")]
+    dt <- xt[,.("MutationCnt"=sum(MutationCnt)),by=.(RTbin)]
+    dt <- dt[RTbin %in% c(0,1,2,3,4,5,6)]
+    
+    trgNum <- dataTrg[Motif %in% C2motifList]     
+    trgNum <- trgNum[RTbin %in% c(0,1,2,3,4,5,6)]
+    trgNum <- trgNum[,.("TargetCnt"=sum(TargetCnt)), by=.(RTbin)]
+    dt1 <- merge(dt, trgNum, by = "RTbin",all.y=TRUE)
+    dt1[is.na(MutationCnt), MutationCnt:=0]
+    dt1 <- dt1[, MutationDensity := MutationCnt/TargetCnt]
+    dt1[, DensityTotal := sum(MutationDensity)]
+    dt1[, NormalizedDensity := MutationDensity/DensityTotal]
+    
+    с2othTG <- lm(NormalizedDensity ~ RTbin,dt1)
+    
+    # All C2-based motifs together
+    
+    xt <- dataMut[Motif %in% C2motifList]
     dt <- xt[,.("MutationCnt"=sum(MutationCnt)),by=.(RTbin)]
     dt <- dt[RTbin %in% c(0,1,2,3,4,5,6)]
     
@@ -209,6 +226,9 @@ for(i in 1:nrow(cancers))
                                  "pvalueTCG"=coefs[4]$pvalue,
                                  "mutcntTCG"=coefs[4]$mutcnt,
                                  "meanС2OtherSlope"=coefOther,
+                                 "coefC2OtherTG"=с2othTG$coefficients[[2]],
+                                 "stderrC2OtherTG"=summary(с2othTG)$coefficients[2,2],
+                                 "pvalueC2OtherTG"=summary(с2othTG)$coefficients[2,4],
                                  "coefC2Other"=с2oth$coefficients[[2]],
                                  "stderrC2Other"=summary(с2oth)$coefficients[2,2],
                                  "pvalueC2Other"=summary(с2oth)$coefficients[2,4],
