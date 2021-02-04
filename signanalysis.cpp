@@ -63,7 +63,7 @@ CResultsValue::CResultsValue(unsigned long mutCnt_, unsigned long leadingCnt_, u
     minusStrandAll = minusStrandAll_;
 }
 
-void CSignatureAnalysis:: ClassifyMutations(CHumanGenome* phuman_)
+void CSignatureAnalysis:: ClassifyMutations(CMutations& muts, vector<string> cancers, vector<string> samples, CHumanGenome* phuman_)
 {
     CHumanGenome* phuman;
     
@@ -75,23 +75,9 @@ void CSignatureAnalysis:: ClassifyMutations(CHumanGenome* phuman_)
         phuman = new CHumanGenome();
         phuman->InitializeHuman("37", HUMAN_PATH, ".fa", "FASTA");
     }
-        
-    // Load mutations
-    CMutations m;
-    int isHeader = 1;
-    m.LoadMutations(CANCER_MUTATIONS, isHeader);
-
-    // Filter APOBEC mutations
     
-    set<string> cancers;
-    set<string> samples;
-    cancers.insert("BLCA");
-    cancers.insert("BRCA");
-    cancers.insert("HNSC");
-    cancers.insert("LUAD");
-    cancers.insert("LUSC");
-    m.FilterMutations(signatureMuts,signatures,(*phuman),cancers,samples,&otherMuts);
-    signatureMuts.SaveToFile("/Users/mar/BIO/BIODATA/CancerMutations/Fredriksson_et_al_2014/mutations_apobec.tsv");
+    // Filter mutations
+    muts.FilterMutations(signatureMuts,signatures,(*phuman),cancers,samples,&otherMuts);
     
     signatureMuts.GetUniqueCancersSamples();
     
@@ -1110,7 +1096,7 @@ CRTexpMapKey::CRTexpMapKey(string motif_, int RTbin_, int expbin_, int RTstrand_
     mutbase = mutbase_;
 }
 
-void CSignatureAnalysis::RTExpAllMotifs(CMutations& muts, string dirpath, map<string,CReplicationTiming*> rtmap,     CExpression exp, vector<CExpressionBin> expBins, CHumanGenome* phuman, CHumanGenes genes, string cancer, string sample)
+void CSignatureAnalysis::RTExpAllMotifs(CMutations& muts, string dirpath, CReplicationTiming& rti, CExpression& exp, vector<CExpressionBin> expBins, CHumanGenome* phuman, CHumanGenes genes, string cancer, string sample)
 {
     int res;
     int RTbin;
@@ -1139,7 +1125,7 @@ void CSignatureAnalysis::RTExpAllMotifs(CMutations& muts, string dirpath, map<st
                 motifs.insert(motif);
             }
     
-    rtBinsSize = rtmap[cancer]->bins.size();
+    rtBinsSize = rti.bins.size();
     
     CMutation mut;
     t1 = clock();
@@ -1148,9 +1134,9 @@ void CSignatureAnalysis::RTExpAllMotifs(CMutations& muts, string dirpath, map<st
         mut = muts.mutations[i];
         
         // RT
-        res = rtmap[string(mut.cancer)]->GetRT(CHumanGenome::GetChrNum(string(mut.chr)), mut.pos, rt);
+        res = rti.GetRT(CHumanGenome::GetChrNum(string(mut.chr)), mut.pos, rt);
         if(res)
-            RTbin = rtmap[string(mut.cancer)]->GetRTBin(rt.RTvalue, (rtmap[string(mut.cancer)]->bins));
+            RTbin = rti.GetRTBin(rt.RTvalue, (rti.bins));
         else
             RTbin = RT_NULLBIN_NOVALUE;
         
@@ -1213,7 +1199,7 @@ void CSignatureAnalysis::RTExpAllMotifs(CMutations& muts, string dirpath, map<st
         f << it->first.motif << '\t' << it->first.RTbin << '\t' << it->first.RTstrand << '\t' << it->first.expbin << '\t' << it->first.senseStrand << '\t' << it->first.mutbase << '\t' << it->second << '\n';
     f.close();
     
-    // Targets
+    //////////////////   Targets
     
     t2 = clock();
  
@@ -1240,9 +1226,9 @@ void CSignatureAnalysis::RTExpAllMotifs(CMutations& muts, string dirpath, map<st
             
             // RT
             t4 = clock();
-            res = rtmap[cancer]->GetRT(i, j+1, rt);
+            res = rti.GetRT(i, j+1, rt);
             if(res)
-                RTbin = rtmap[cancer]->GetRTBin(rt.RTvalue, (rtmap[cancer]->bins));
+                RTbin = rti.GetRTBin(rt.RTvalue, (rti.bins));
             else
                 RTbin = RT_NULLBIN_NOVALUE;
             

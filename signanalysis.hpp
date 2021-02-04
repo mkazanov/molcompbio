@@ -231,7 +231,7 @@ public:
     vector<CMutationSignature> signatures;
     CMutations signatureMuts;
     CMutations otherMuts;
-    void ClassifyMutations(CHumanGenome* phuman_ = NULL);
+    void ClassifyMutations(CMutations& muts, vector<string> cancers, vector<string> samples, CHumanGenome* phuman_ = NULL);
     void AnalyzeReplicationTiming(CMutations& muts, string resultsFilename);
     void AnalyzeExpression(CMutations& muts, string resultsFilename);
     void AnalyzeRTExpression(CMutations& muts, string resultsFilename);
@@ -241,7 +241,7 @@ public:
     void CalculateTargetsinRTexpressionBins(string outFilePrefix, CHumanGenome* phuman = NULL, string cancer = "", string sample = "", int isAPOBECmotif = 1);
     void CalculateExpressionAllMotifs(CMutations& muts, string outFilePrefix, CHumanGenome* phuman, string cancer, string sample);
     void CalculateTargetsinExpBinAllMotifs(string outFilePrefix, CHumanGenome* phuman, string cancer, string sample);
-    void RTExpAllMotifs(CMutations& muts, string dirpath, map<string,CReplicationTiming*> rtmap,     CExpression exp, vector<CExpressionBin> expBins, CHumanGenome* phuman, CHumanGenes genes, string cancer, string sample);
+    void RTExpAllMotifs(CMutations& muts, string dirpath, CReplicationTiming& rt, CExpression& exp, vector<CExpressionBin> expBins, CHumanGenome* phuman, CHumanGenes genes, string cancer, string sample);
     
     void CalculateAPOBECEnrichment(CHumanGenome* phuman_ = NULL);
     set<CCancerSample> LoadCancerSamples(string path);

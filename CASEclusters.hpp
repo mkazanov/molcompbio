@@ -12,5 +12,6 @@
 #include <stdio.h>
 
 void ProcessClusters();
+void MakeApobecMutationsFile();
 
 #endif /* CASEclusters_hpp */

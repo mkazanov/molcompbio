@@ -59,7 +59,7 @@ void CExpression::LoadExpression(string path, string sample)
             flds1 = splitd(flds[0],'|');
             geneId = flds1[1];
             if(sample == "")
-                data.insert(pair<CExpressionKey,double>(CExpressionKey(geneId,sample),str2d(flds[2])));
+                data.insert(pair<CExpressionKey,double>(CExpressionKey(geneId,smpl),str2d(flds[2])));
             else
                 dataSample[str2ul(geneId)] = str2d(flds[2]);
         }

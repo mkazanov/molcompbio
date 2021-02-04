@@ -17,6 +17,7 @@
 #include <algorithm>
 #include "mutsignature.hpp"
 #include <cstring>
+#include <cmath>
 
 CReplicationTime::CReplicationTime(string startpos_, string endpos_, string RTvalue_)
 {
@@ -310,4 +311,67 @@ int CReplicationTiming::CalculateMotifinRTBins(set<string> motifs, string OUT_PA
     f.close();
     
     return(1);
+}
+
+void CReplicationTiming::CalculateRTbinsWidth(int binsNum, CHumanGenome* phuman, string outputPath)
+{
+    int i,j,k;
+    double rtval;
+    int res;
+    string motif,motif2;
+    map<string, vector<double> > results;
+    map<string, vector<double> >::iterator it;
+    char nuc[4] = {'A','G','C','T'};
+    vector<double> emptyVector;
+    string path;
+
+    for(i=0;i<4;i++)
+        for(j=0;j<4;j++)
+            for(k=0;k<4;k++)
+            {
+                motif = string(1,nuc[i])+string(1,nuc[j])+string(1,nuc[k]);
+                motif2 = CDNA::cDNA(motif);
+                motif = (motif < motif2) ? motif : motif2;
+                results[motif] = emptyVector;
+            }
+    
+    for(i=0;i<phuman->chrCnt;i++)
+    {
+        cout << "Chromosome: " << i << '\n';
+
+        for(j=1;j<(phuman->chrLen[i]-1);j++)
+        {
+            if(!(CDNA::inACGT(phuman->dna[i][j]) &&
+                 CDNA::inACGT(phuman->dna[i][j-1]) &&
+                 CDNA::inACGT(phuman->dna[i][j+1])))
+                continue;
+            
+            res = GetRT(i, j+1, rtval);
+            if(!res)
+                continue;
+
+            motif = string(1,phuman->dna[i][j-1]) + string(1,phuman->dna[i][j]) + string(1,phuman->dna[i][j+1]);
+            motif2 = CDNA::cDNA(motif);
+            motif = (motif < motif2) ? motif : motif2;
+            
+            results[motif].push_back(rtval);
+        }
+    }
+    
+    ofstream f;
+    double step;
+    f.open(outputPath.c_str());
+    for(it=results.begin();it!=results.end();it++)
+    {
+        sort(it->second.begin(),it->second.end());
+        f << it->first << '\t';
+        step = it->second.size() / binsNum;
+        for(i=1;i<binsNum;i++)
+        {
+            f << it->second[round(i*step)] << '\t';
+        }
+        f << '\n';
+    }
+    f.close();
+    
 }

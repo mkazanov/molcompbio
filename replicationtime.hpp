@@ -80,6 +80,7 @@ public:
         else
             return(STRAND_NULL);
     }
+    void CalculateRTbinsWidth(int binsNum, CHumanGenome* phuman, string outputPath);
 };
 
 #endif /* replicationtime_hpp */

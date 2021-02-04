@@ -13,6 +13,25 @@
 #include <iostream>
 #include "service.h"
 
+CMutFileFormat::CMutFileFormat(char delimiter_,
+               int cancerNo_,
+               int sampleNo_,
+               int chrNo_,
+               int posNo_,
+               int refalleleNo_,
+               int varalleleNo_,
+               int isHeader_)
+{
+    delimiter = delimiter_;
+    cancerNo = cancerNo_;
+    sampleNo = sampleNo_;
+    chrNo = chrNo_;
+    posNo = posNo_;
+    refalleleNo = refalleleNo_;
+    varalleleNo = varalleleNo_;
+    isHeader = isHeader_;
+}
+
 CMutation::CMutation(string cancer_,
                      string sample_,
                      string chr_,
@@ -39,11 +58,36 @@ CMutation::CMutation(string cancer_,
     isForwardStrand = isForwardStrand_;
 }
 
-void CMutations::LoadMutations(string path, int isHeader, vector<string> onlyCancers, vector<string> onlySamples, int onlySubs, CHumanGenome* phuman)
+CMutations::CMutations()
+{
+    // Fridriksson file format
+    fileFormat.push_back(CMutFileFormat('\t', //separator
+                                        1, // cancer field num
+                                        0, // sample field num
+                                        2, // chromosome field num
+                                        3, // position filed num
+                                        4, // ref allele num
+                                        5, // var allele num
+                                        1 // is header
+                                        ));
+    // PCAWG file format
+    fileFormat.push_back(CMutFileFormat('\t',
+                                        -1, // cancer field num
+                                        8, // sample field num
+                                        0, // chromosome field num
+                                        1, // position filed num
+                                        3, // ref allele num
+                                        4, // var allele num
+                                        1 // is header
+                                        ));
+}
+
+void CMutations::LoadMutations(int fileFormatType /* 0 - Fridriksson, 1 - PCAWG */, string path, vector<string> onlyCancers, vector<string> onlySamples, int onlySubs, CHumanGenome* phuman)
 {
     vector<string> flds;
     string line;
     clock_t c1,c2;
+    string cancerProject;
     
     ifstream f(path.c_str());
     if (!f.is_open())
@@ -51,7 +95,19 @@ void CMutations::LoadMutations(string path, int isHeader, vector<string> onlyCan
         printf("File not exists\n");
         exit(1);
     }
+    if (fileFormatType == FILE_FORMAT_PCAWG && onlyCancers.empty())
+    {
+        printf("Cancer project should be specified\n");
+        exit(1);
+    }
+    if (fileFormatType == FILE_FORMAT_PCAWG && onlyCancers.size() != 1)
+    {
+        printf("Single cancer project should be specified\n");
+        exit(1);
+    }
 
+    if(fileFormat[fileFormatType].isHeader)
+        getline(f, line);
     printf("Calculating number of mutations ...\n");
     mutationsCnt = 0;
     while(1)
@@ -59,17 +115,21 @@ void CMutations::LoadMutations(string path, int isHeader, vector<string> onlyCan
         getline(f, line);
         if(f.eof())
             break;
-        flds = split(line);
-        if ((onlyCancers.empty() || find(onlyCancers.begin(),onlyCancers.end(),flds[1]) != onlyCancers.end()) &&
-            (phuman==NULL || phuman->GetChrNum(flds[2]) != -1) &&
-            (onlySamples.empty() || find(onlySamples.begin(),onlySamples.end(),flds[0]) != onlySamples.end()) &&
-            (onlySubs != 1 || flds[4].size() == flds[5].size()))
-            mutationsCnt++;
+        flds = splitd(line,fileFormat[fileFormatType].delimiter);
+        if (fileFormatType == FILE_FORMAT_FRIDRIKSSON && !onlyCancers.empty() && find(onlyCancers.begin(),onlyCancers.end(),flds[fileFormat[fileFormatType].cancerNo]) == onlyCancers.end())
+            continue;
+        auto a = flds[fileFormat[fileFormatType].chrNo];
+        auto b = phuman->GetChrNum(flds[fileFormat[fileFormatType].chrNo]);
+        if(phuman!=NULL && phuman->GetChrNum(flds[fileFormat[fileFormatType].chrNo]) == -1)
+            continue;
+        if(!onlySamples.empty() && find(onlySamples.begin(),onlySamples.end(),flds[fileFormat[fileFormatType].sampleNo]) == onlySamples.end())
+            continue;
+        if(onlySubs == 1 && flds[fileFormat[fileFormatType].refalleleNo].size() != flds[fileFormat[fileFormatType].varalleleNo].size())
+            continue;
+        mutationsCnt++;
     }
     f.clear();
     f.seekg(0, ios::beg);
-    
-    mutationsCnt -= isHeader;
     
     printf("Allocating space for mutaiton ...\n");
     c1 = clock();
@@ -77,7 +137,7 @@ void CMutations::LoadMutations(string path, int isHeader, vector<string> onlyCan
     c2 = clock();
     printf("Executing time: %lu \n", c2 - c1);
 
-    if(isHeader)
+    if(fileFormat[fileFormatType].isHeader)
         getline(f, line);
     
     printf("Mutations loading ...\n");
@@ -88,11 +148,25 @@ void CMutations::LoadMutations(string path, int isHeader, vector<string> onlyCan
     {
         if (line.length() != 0)
         {
-            flds = split(line);
-            if ((onlyCancers.empty() || find(onlyCancers.begin(),onlyCancers.end(),flds[1]) != onlyCancers.end()) && (phuman==NULL || phuman->GetChrNum(flds[2]) != -1) &&
-                (onlySamples.empty() || find(onlySamples.begin(),onlySamples.end(),flds[0]) != onlySamples.end()) &&
-                (onlySubs != 1 || flds[4].size() == flds[5].size()))
-                mutations.push_back(CMutation(flds[1],flds[0],flds[2],flds[3],flds[4],flds[5],1));
+            flds = splitd(line,fileFormat[fileFormatType].delimiter);
+            if (fileFormatType == FILE_FORMAT_FRIDRIKSSON && !onlyCancers.empty() && find(onlyCancers.begin(),onlyCancers.end(),flds[fileFormat[fileFormatType].cancerNo]) == onlyCancers.end())
+                continue;
+            if(phuman!=NULL && phuman->GetChrNum(flds[fileFormat[fileFormatType].chrNo]) == -1)
+                continue;
+            if(!onlySamples.empty() && find(onlySamples.begin(),onlySamples.end(),flds[fileFormat[fileFormatType].sampleNo]) == onlySamples.end())
+                continue;
+            if(onlySubs == 1 && flds[fileFormat[fileFormatType].refalleleNo].size() != flds[fileFormat[fileFormatType].varalleleNo].size())
+                continue;
+            if(fileFormatType == FILE_FORMAT_PCAWG)
+                cancerProject = onlyCancers[0];
+            else
+                cancerProject = flds[fileFormat[fileFormatType].cancerNo];
+            mutations.push_back(CMutation(cancerProject,
+                                              flds[fileFormat[fileFormatType].sampleNo],
+                                              flds[fileFormat[fileFormatType].chrNo],
+                                              flds[fileFormat[fileFormatType].posNo],
+                                              flds[fileFormat[fileFormatType].refalleleNo],
+                                              flds[fileFormat[fileFormatType].varalleleNo],1));
             i++;
         }
     }
@@ -103,7 +177,7 @@ void CMutations::LoadMutations(string path, int isHeader, vector<string> onlyCan
 }
 
 void CMutations::FilterMutations(CMutations& filteredMutations, vector<CMutationSignature>& signatures, CHumanGenome& human,
-                                 set<string> cancers, set<string> samples, CMutations* pOtherMutations=NULL)
+                                 vector<string> cancers, vector<string> samples, CMutations* pOtherMutations=NULL)
 {
     int i,j;
     CMutation m;
@@ -121,9 +195,9 @@ void CMutations::FilterMutations(CMutations& filteredMutations, vector<CMutation
         m = mutations[i];
         if (string(m.chr) == "M")
             continue;
-        if (!cancers.empty() && cancers.find(string(m.cancer)) == cancers.end())
+        if (!cancers.empty() && find(cancers.begin(),cancers.end(),m.cancer) == cancers.end())
             continue;
-        if (!samples.empty() && samples.find(string(m.sample)) == samples.end())
+        if (!samples.empty() && find(samples.begin(),samples.end(),m.sample) == samples.end())
             continue;
         
         foundMutation = 0;
@@ -203,4 +277,35 @@ void CMutations::GetUniqueCancersSamples()
     cancerSample.clear();
     for(int i=0;i<mutations.size();i++)
         cancerSample.insert(CCancerSample(mutations[i].cancer,mutations[i].sample));
+}
+
+void CMutations::RenameSamples(string renameTablePath, int columnNumOld, int columnNumNew, int newSampleNameLen)
+{
+    string line;
+    vector<string> flds;
+    int i;
+    
+    ifstream f(renameTablePath.c_str());
+    if (!f.is_open())
+    {
+        printf("File not exists\n");
+        exit(1);
+    }
+    
+    getline(f, line);
+    while(1)
+    {
+        getline(f, line);
+        if(f.eof())
+            break;
+        
+        flds = splitd(line,',');
+        renamemap[flds[columnNumOld]] = flds[columnNumNew];
+    }
+    
+    for(int i=0;i<mutations.size();i++)
+    {
+        renamemap[mutations[i].sample].copy(mutations[i].sample,STRLEN_SAMPLE);
+        mutations[i].sample[newSampleNameLen] = '\0';
+    }
 }

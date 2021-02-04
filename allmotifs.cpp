@@ -69,7 +69,7 @@ void CAllMotifs::AnalysisReplicationTiming(string motif, string dirpath)
     for(it=nuc4cur.begin();it!=nuc4cur.end();it++)
         a.signatures.push_back(CMutationSignature(motif,2,string(1,*it)));
     
-    a.ClassifyMutations(&human);
+//a.ClassifyMutations(&human);
     a.AnalyzeReplicationTiming(a.signatureMuts,dirpath+"/"+motif+"_3.txt");
 
     a.signatures.clear();
@@ -82,7 +82,7 @@ void CAllMotifs::AnalysisReplicationTiming(string motif, string dirpath)
     {
         a.signatures.push_back(CMutationSignature(motif,2,string(1,*it)));
 
-        a.ClassifyMutations(&human);
+//a.ClassifyMutations(&human);
         a.AnalyzeReplicationTiming(a.signatureMuts,dirpath+"/"+motif+"_"+string(1,*it)+".txt");
         
         a.signatures.clear();
@@ -106,6 +106,7 @@ void CAllMotifs::AnalysisRTExp(string dirpath, string cancer, string sample)
 {
     vector<string> cancers;
     vector<string> samples;
+    string renamedSample;
     
     //Load human genome
     CHumanGenome human;
@@ -113,56 +114,27 @@ void CAllMotifs::AnalysisRTExp(string dirpath, string cancer, string sample)
     
     // Load mutations
     CMutations m;
-    int isHeader = 1;
     cancers.push_back(cancer);
     samples.push_back(sample);
-    m.LoadMutations(CANCER_MUTATIONS, isHeader, cancers, samples, 1, &human);
+    m.LoadMutations(CANCER_MUTATIONS_FILEFORMAT, CANCER_MUTATIONS_PATH, cancers, samples, 1, &human);
+    m.RenameSamples("/Users/mar/BIO/PROJECTS/PCAWG_APOBEC/PCAWG_samples_list.csv",2,3,16);
+    renamedSample = m.renamemap[sample];
+    renamedSample = renamedSample.substr(0,16);
     
     // Load replication timing
     string path;
-    CReplicationTiming rtIMR90;
-    CReplicationTiming rtMCF7;
-    CReplicationTiming rtNHEK;
-    path = string(REPLICATION_TIMING_FOLDER)+string("/wgEncodeUwRepliSeqImr90WaveSignalRep1.mybed");
-    rtIMR90.LoadReplicationTiming(path.c_str(), 0);
-    rtIMR90.ReplicationStrand();
-    path = string(REPLICATION_TIMING_FOLDER)+string("/wgEncodeUwRepliSeqMcf7WaveSignalRep1.mybed");
-    rtMCF7.LoadReplicationTiming(path.c_str(), 0);
-    rtMCF7.ReplicationStrand();
-    path = string(REPLICATION_TIMING_FOLDER)+string("/wgEncodeUwRepliSeqNhekWaveSignalRep1.mybed");
-    rtNHEK.LoadReplicationTiming(path.c_str(), 0);
-    rtNHEK.ReplicationStrand();
+    CReplicationTiming rt;
+    path = string(REPLICATION_TIMING_FOLDER)+string("/wgEncodeUwRepliSeqHelas3WaveSignalRep1.mybed");
+    rt.LoadReplicationTiming(path.c_str(), 0);
+    rt.ReplicationStrand();
     
-    rtIMR90.bins.push_back(CRTBin(0,-100,13.0766));
-    rtIMR90.bins.push_back(CRTBin(1,13.0766,28.3851));
-    rtIMR90.bins.push_back(CRTBin(2,28.3851,40.2474));
-    rtIMR90.bins.push_back(CRTBin(3,40.2474,52.0254));
-    rtIMR90.bins.push_back(CRTBin(4,52.0254,64.7194));
-    rtIMR90.bins.push_back(CRTBin(5,64.7194,75.0635));
-    rtIMR90.bins.push_back(CRTBin(6,75.0635,90.1735));
-    
-    rtMCF7.bins.push_back(CRTBin(0,-100,19.8872));
-    rtMCF7.bins.push_back(CRTBin(1,19.8872,30.5993));
-    rtMCF7.bins.push_back(CRTBin(2,30.5993,40.0364));
-    rtMCF7.bins.push_back(CRTBin(3,40.0364,50.556));
-    rtMCF7.bins.push_back(CRTBin(4,50.556,60.3904));
-    rtMCF7.bins.push_back(CRTBin(5,60.3904,68.9953));
-    rtMCF7.bins.push_back(CRTBin(6,68.9953,86.4342));
-    
-    rtNHEK.bins.push_back(CRTBin(0,-100,22.622));
-    rtNHEK.bins.push_back(CRTBin(1,-100,32.1929));
-    rtNHEK.bins.push_back(CRTBin(2,-100,41.1202));
-    rtNHEK.bins.push_back(CRTBin(3,-100,50.9531));
-    rtNHEK.bins.push_back(CRTBin(4,-100,59.6393));
-    rtNHEK.bins.push_back(CRTBin(5,-100,67.2079));
-    rtNHEK.bins.push_back(CRTBin(6,-100,80.7682));
-    
-    map<string,CReplicationTiming*> rtmap;
-    rtmap["BLCA"] = &rtNHEK;
-    rtmap["BRCA"] = &rtMCF7;
-    rtmap["HNSC"] = &rtNHEK;
-    rtmap["LUAD"] = &rtIMR90;
-    rtmap["LUSC"] = &rtIMR90;
+    rt.bins.push_back(CRTBin(0,-100,19.0528));
+    rt.bins.push_back(CRTBin(1,19.0528,32.8395));
+    rt.bins.push_back(CRTBin(2,32.8395,44.6798));
+    rt.bins.push_back(CRTBin(3,44.6798,55.0382));
+    rt.bins.push_back(CRTBin(4,55.0382,63.9244));
+    rt.bins.push_back(CRTBin(5,63.9244,71.6868));
+    rt.bins.push_back(CRTBin(6,71.6868,85.2286));
     
     CHumanGenes genes;
     genes.LoadGenes(string(HUMAN_GENES));
@@ -170,7 +142,7 @@ void CAllMotifs::AnalysisRTExp(string dirpath, string cancer, string sample)
     //genes.SaveToFile("/Users/mar/87/genes.txt");
 
     CExpression exp;
-    exp.LoadExpression(string(EXPRESSION_FOLDER)+"/unpivot_expression_"+cancer+".txt", sample);
+    exp.LoadExpression(string(EXPRESSION_FOLDER)+"/unpivot_expression_"+cancer+".txt", renamedSample);
     
     vector<CExpressionBin> expBins;
     expBins.push_back(CExpressionBin(0,-9999999,0));
@@ -183,7 +155,7 @@ void CAllMotifs::AnalysisRTExp(string dirpath, string cancer, string sample)
     expBins.push_back(CExpressionBin(7,2000,99999999999));
     
     CSignatureAnalysis a;
-    a.RTExpAllMotifs(m, dirpath, rtmap, exp, expBins, &human, genes, cancer, sample);
+    a.RTExpAllMotifs(m, dirpath, rt, exp, expBins, &human, genes, cancer, renamedSample);
     
 }
 

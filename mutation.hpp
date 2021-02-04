@@ -10,10 +10,12 @@
 #define mutation_hpp
 
 #define STRLEN_CANCER 4
-#define STRLEN_SAMPLE 16
+#define STRLEN_SAMPLE 36
 #define STRLEN_CHR 2
 #define STRLEN_REFALLELE 1
 #define STRLEN_VARALLELE 1
+#define FILE_FORMAT_FRIDRIKSSON 0
+#define FILE_FORMAT_PCAWG 1
 
 #include <stdio.h>
 #include <string>
@@ -23,8 +25,29 @@
 #include "ghuman.hpp"
 #include "mutation.hpp"
 #include <fstream>
+#include <map>
 
 using namespace std;
+
+class CMutFileFormat{
+public:
+    char delimiter;
+    int cancerNo;
+    int sampleNo;
+    int chrNo;
+    int posNo;
+    int refalleleNo;
+    int varalleleNo;
+    int isHeader;
+    CMutFileFormat(char delimiter_,
+              int cancerNo_,
+              int sampleNo_,
+              int chrNo_,
+              int posNo_,
+              int refalleleNo_,
+              int varalleleNo_,
+              int isHeader);
+};
 
 class CCancerSample{
 public:
@@ -95,19 +118,23 @@ public:
 
 class CMutations{
 public:
+    CMutations();
+    vector<CMutFileFormat> fileFormat;
     vector<CMutation> mutations;
+    map<string, string> renamemap;
     unsigned long mutationsCnt;
-    void LoadMutations(string path, int isHeader, vector<string> onlyCancers=vector<string>(), vector<string> onlySamples=vector<string>(), int onlySubs=1, CHumanGenome* phuman = NULL);
+    void LoadMutations(int fileFormatType /* 0 - Fridriksson, 1 - PCAWG */, string path, vector<string> onlyCancers=vector<string>(), vector<string> onlySamples=vector<string>(), int onlySubs=1, CHumanGenome* phuman = NULL);
     void FilterMutations(CMutations& filteredMutations,
                          vector<CMutationSignature>& signatures,
                          CHumanGenome& human,
-                         set<string> cancers,
-                         set<string> samples,
+                         vector<string> cancers,
+                         vector<string> samples,
                          CMutations* pOtherMutations);
     set<CCancerSample> cancerSample;
     void GetUniqueCancersSamples();
     void SaveToFile(string path);
     void SaveToFileRTExp(string path);
+    void RenameSamples(string renameTablePath, int columnNumOld, int columnNumNew, int newSampleNameLen);
 };
 
 #endif /* mutation_hpp */

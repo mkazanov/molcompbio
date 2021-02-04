@@ -22,13 +22,21 @@ public:
     static int GetChrNum(string chr)
     {
         int ret;
+        size_t chrpos;
+        string chr_;
         
-        if (chr == "X")
+        chrpos = chr.find("chr");
+        if(chrpos != string::npos && chrpos == 0)
+            chr_ = chr.substr(3);
+        else
+            chr_ = chr;
+        
+        if (chr_ == "X")
             ret = 22;
-        else if (chr == "Y")
+        else if (chr_ == "Y")
             ret = 23;
         else
-            ret = str2i(chr) - 1;
+            ret = str2i(chr_) - 1;
         
         if(ret >= 0 && ret < 24)
             return(ret);

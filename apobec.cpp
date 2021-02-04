@@ -46,7 +46,12 @@ a.signatures.push_back(CMutationSignature("TCG",2,"T"));
 a.signatures.push_back(CMutationSignature("TCC",2,"G"));
 a.signatures.push_back(CMutationSignature("TCG",2,"G"));
 
-a.ClassifyMutations(&human);
+vector<string> cancers;
+vector<string> samples;
+CMutations m;
+m.LoadMutations(CANCER_MUTATIONS_FILEFORMAT, CANCER_MUTATIONS_PATH, cancers, samples, 1, &human);
+
+a.ClassifyMutations(m,cancers,samples,&human);
 
 /*a.CalculateAPOBECEnrichment(&human);*/
  

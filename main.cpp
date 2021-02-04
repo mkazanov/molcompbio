@@ -18,8 +18,45 @@
 
 int main(int argc, const char * argv[]) {
     
-    ProcessClusters();
+    //ProcessClusters();
+    MakeApobecMutationsFile();
     return 0;
+
+    
+    
+    vector<string> cancers;
+    vector<string> samples;
+    
+    CHumanGenome human;
+    human.InitializeHuman("37", HUMAN_PATH, ".fa", "FASTA");
+    
+    CMutations m;
+    cancers.push_back("CESC");
+    m.LoadMutations(CANCER_MUTATIONS_FILEFORMAT, CANCER_MUTATIONS_PATH, cancers, samples, 1, &human);
+    m.RenameSamples("/Users/mar/BIO/PROJECTS/PCAWG_APOBEC/PCAWG_samples_list.csv",2,3,16);
+
+    CSignatureAnalysis a;
+    
+    a.signatures.push_back(CMutationSignature("TCA",2,"T"));
+    a.signatures.push_back(CMutationSignature("TCT",2,"T"));
+    a.signatures.push_back(CMutationSignature("TCA",2,"G"));
+    a.signatures.push_back(CMutationSignature("TCT",2,"G"));
+    a.signatures.push_back(CMutationSignature("TCC",2,"T"));
+    a.signatures.push_back(CMutationSignature("TCG",2,"T"));
+    a.signatures.push_back(CMutationSignature("TCC",2,"G"));
+    a.signatures.push_back(CMutationSignature("TCG",2,"G"));
+    
+    a.ClassifyMutations(m,cancers,samples,&human);
+
+    a.CalculateAPOBECEnrichment(&human);
+    
+    return 0;
+    
+    CAllMotifs c;
+    c.AnalysisRTExp(string(RESULTS_FOLDER)+"/ALL",argv[1],argv[2]);
+    
+    return 0;
+    
     
     
     time_t t;
@@ -31,10 +68,10 @@ int main(int argc, const char * argv[]) {
     cout << (now->tm_year + 1900) << '-' << (now->tm_mon + 1) << '-' <<  now->tm_mday << ' ' << now->tm_hour << ":" << now->tm_min << ":" << now->tm_sec << "\n";
     
 
-    CHumanGenome human;
-    human.InitializeHuman("37", HUMAN_PATH, ".fa", "FASTA");
+    //CHumanGenome human;
+    //human.InitializeHuman("37", HUMAN_PATH, ".fa", "FASTA");
     
-    CSignatureAnalysis a;
+   /* CSignatureAnalysis a;
     
     a.signatures.push_back(CMutationSignature("TCA",2,"T"));
     a.signatures.push_back(CMutationSignature("TCT",2,"T"));
@@ -47,7 +84,7 @@ int main(int argc, const char * argv[]) {
     
     a.ClassifyMutations(&human);
 
-    return 0;
+    return 0; */
     
 /*
     CMutations m;
@@ -60,8 +97,6 @@ int main(int argc, const char * argv[]) {
     */
  
     
-    CAllMotifs c;
-    c.AnalysisRTExp(string(RESULTS_FOLDER)+"/ALL",argv[1],argv[2]);
     
     // End date/time
     t = time(0);
